@@ -1,0 +1,1139 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sistem E-Surat POLTERA</title>
+  
+  <!-- CSS Frameworks & Icons -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+  
+  <!-- Libraries untuk cetak PDF & QR Code di Sisi Klien -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap');
+    body {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      background-color: #f1f5f9;
+    }
+    .hide { display: none !important; }
+    
+    /* Standar Kertas Cetak Surat Resmi (A4 Ratio) di Browser */
+    .kertas-dokumen {
+      width: 100%;
+      max-width: 650px;
+      aspect-ratio: 1 / 1.414;
+      background-color: white;
+      padding: 45px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+      font-family: 'Times New Roman', Times, serif;
+      color: #000;
+      font-size: 13px;
+      line-height: 1.5;
+      position: relative;
+    }
+    .kertas-dokumen h1, .kertas-dokumen h2, .kertas-dokumen h3 {
+      font-family: 'Times New Roman', Times, serif;
+    }
+  </style>
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            'poltera-navy': '#1e3a8a',
+            'poltera-accent': '#f59e0b',
+            'poltera-dark': '#0f172a'
+          }
+        }
+      }
+    }
+  </script>
+</head>
+<body class="text-slate-800">
+
+  <!-- ==================== HALAMAN LOGIN (DESAIN BARU BACKGROUND + ICON) ==================== -->
+  <div id="login-screen" class="min-h-screen flex items-center justify-center relative overflow-hidden bg-gradient-to-br from-poltera-dark via-slate-800 to-poltera-navy p-4">
+    
+    <!-- Dekorasi Background Ambient -->
+    <div class="absolute -top-32 -left-32 w-96 h-96 bg-blue-500 rounded-full mix-blend-multiply filter blur-[100px] opacity-30"></div>
+    <div class="absolute -bottom-32 -right-32 w-96 h-96 bg-poltera-accent rounded-full mix-blend-multiply filter blur-[100px] opacity-20"></div>
+
+    <div class="bg-white p-8 rounded-3xl shadow-2xl w-full max-w-md text-center transform transition duration-500 hover:scale-[1.01] relative z-10">
+      <div class="mb-8">
+        <!-- FITUR 4: LOGO POLTERA (CSS + ICON) Anti-Error/Broken -->
+        <div class="w-20 h-20 bg-gradient-to-tr from-poltera-navy to-blue-500 text-white rounded-2xl flex items-center justify-center text-4xl font-bold mx-auto mb-4 shadow-lg shadow-blue-500/30 ring-4 ring-blue-50">
+          <i class="fas fa-university"></i>
+        </div>
+        <h1 class="text-2xl font-extrabold text-slate-800 tracking-tight uppercase">Bagian Akademik dan Kemahasiswaan</h1>
+        <p class="text-xs font-semibold text-slate-400 mt-1 uppercase tracking-wider">Layanan Dokumen Digital Akademik</p>
+      </div>
+
+      <!-- Pemilihan Hak Akses Utama -->
+      <div id="role-selection-section" class="space-y-3.5">
+        <p class="text-[11px] font-bold text-slate-400 uppercase tracking-wider text-left pl-1 border-b border-slate-100 pb-2">Pilih Portal Akses:</p>
+        
+        <!-- Portal Mahasiswa -->
+        <button onclick="bukaFormKredensial('mahasiswa')" class="w-full flex items-center justify-between p-4 bg-slate-50 hover:bg-blue-50/80 border border-slate-200 hover:border-poltera-navy rounded-xl text-left transition duration-200 group">
+          <div class="flex items-center gap-3.5">
+            <div class="w-10 h-10 rounded-lg bg-blue-100 text-poltera-navy flex items-center justify-center text-lg"><i class="fas fa-user-graduate"></i></div>
+            <div>
+              <p class="font-bold text-sm text-slate-700 group-hover:text-poltera-navy">Mahasiswa</p>
+              <p class="text-[10px] text-slate-400">Login dengan NIM Anda</p>
+            </div>
+          </div>
+          <i class="fas fa-chevron-right text-slate-300 group-hover:text-poltera-navy transition"></i>
+        </button>
+
+        <!-- Portal Admin Akademik -->
+        <button onclick="bukaFormKredensial('admin')" class="w-full flex items-center justify-between p-4 bg-slate-50 hover:bg-emerald-50 border border-slate-200 hover:border-emerald-600 rounded-xl text-left transition duration-200 group">
+          <div class="flex items-center gap-3.5">
+            <div class="w-10 h-10 rounded-lg bg-emerald-100 text-emerald-600 flex items-center justify-center text-lg"><i class="fas fa-user-shield"></i></div>
+            <div>
+              <p class="font-bold text-sm text-slate-700 group-hover:text-emerald-700">Admin Akademik</p>
+              <p class="text-[10px] text-slate-400">Verifikator & TTE Digital</p>
+            </div>
+          </div>
+          <i class="fas fa-chevron-right text-slate-300 group-hover:text-emerald-600 transition"></i>
+        </button>
+
+        <!-- Portal Pimpinan (Wadir I)
+        <button onclick="bukaFormKredensial('pimpinan')" class="w-full flex items-center justify-between p-4 bg-slate-50 hover:bg-purple-50 border border-slate-200 hover:border-purple-600 rounded-xl text-left transition duration-200 group">
+          <div class="flex items-center gap-3.5">
+            <div class="w-10 h-10 rounded-lg bg-purple-100 text-purple-600 flex items-center justify-center text-lg"><i class="fas fa-user-tie"></i></div>
+            <div>
+              <p class="font-bold text-sm text-slate-700 group-hover:text-purple-700">Wakil Direktur I (Akademik)</p>
+              <p class="text-[10px] text-slate-400">Otorisasi Surat & TTE Digital</p>
+            </div>
+          </div>
+          <i class="fas fa-chevron-right text-slate-300 group-hover:text-purple-600 transition"></i>
+        </button> -->
+      </div>
+
+      <!-- Form Verifikasi Kredensial Pengguna -->
+      <div id="credential-form-section" class="hide space-y-4 text-left border border-slate-100 p-5 rounded-2xl bg-slate-50/50">
+        <div class="flex items-center gap-2 mb-2">
+          <button onclick="kembaliKePilihanRole()" class="text-slate-400 hover:text-poltera-navy"><i class="fas fa-arrow-left"></i></button>
+          <span class="text-xs font-bold text-slate-500 uppercase tracking-widest" id="target-portal-label">Portal Verifikasi</span>
+        </div>
+        
+        <form id="login-auth-form" onsubmit="prosesVerifikasiKredensial(event)">
+          <!-- Field 1: NIM / Username -->
+          <div class="space-y-1 mb-3">
+            <label class="block text-[11px] font-bold text-slate-500 uppercase" id="label-field-username">NIM / Username</label>
+            <div class="relative">
+              <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-slate-400"><i class="fas fa-user text-xs"></i></span>
+              <input type="text" id="auth-username" required class="w-full pl-9 pr-4 py-2.5 border border-slate-200 rounded-lg text-xs focus:ring-1 focus:ring-poltera-navy focus:border-poltera-navy outline-none font-semibold">
+            </div>
+          </div>
+
+          <!-- Field 2: Password -->
+          <div class="space-y-1 mb-4" id="password-field-container">
+            <label class="block text-[11px] font-bold text-slate-500 uppercase">Kata Sandi (Password)</label>
+            <div class="relative">
+              <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-slate-400"><i class="fas fa-lock text-xs"></i></span>
+              <input type="password" id="auth-password" class="w-full pl-9 pr-4 py-2.5 border border-slate-200 rounded-lg text-xs focus:ring-1 focus:ring-poltera-navy focus:border-poltera-navy outline-none font-semibold">
+            </div>
+          </div>
+
+          <button type="submit" class="w-full bg-poltera-navy hover:bg-slate-800 text-white text-xs font-bold py-3 rounded-xl shadow-md transition duration-200 flex items-center justify-center gap-2">
+            <i class="fas fa-sign-in-alt"></i> Autentikasi Pengguna
+          </button>
+        </form>
+      </div>
+
+      <p class="text-[10px] text-slate-400 mt-8 font-semibold">Layanan Terpadu Politeknik Negeri Madura &copy; 2026</p>
+    </div>
+  </div>
+
+
+  <!-- ==================== MAIN PANEL APPLICATION ==================== -->
+  <div id="app-screen" class="hide flex h-screen overflow-hidden">
+    
+    <!-- Sidebar -->
+    <aside class="w-64 bg-poltera-dark text-slate-200 flex flex-col z-20 shadow-2xl border-r border-slate-800">
+      
+      <!-- LOGO SIDEBAR CSS (Anti Error) -->
+      <div class="h-16 flex items-center justify-center gap-3 border-b border-slate-800 bg-slate-900/50 shadow-inner">
+        <div class="w-8 h-8 bg-gradient-to-tr from-poltera-accent to-amber-300 rounded flex items-center justify-center text-poltera-dark shadow"><i class="fas fa-university"></i></div>
+        <span class="font-extrabold text-white tracking-widest uppercase text-lg">Poltera</span>
+      </div>
+
+      <!-- Info Sesi -->
+      <div class="p-4 border-b border-slate-800 bg-slate-950/40 flex items-center gap-3">
+        <div class="w-10 h-10 rounded-full bg-poltera-navy text-white flex items-center justify-center text-base font-bold border border-slate-700 shadow" id="nav-initial">U</div>
+        <div class="overflow-hidden">
+          <p class="text-xs font-bold text-white truncate" id="nav-user-name">User Name</p>
+          <p class="text-[9px] text-slate-400 uppercase tracking-widest font-semibold" id="nav-user-role">Role</p>
+        </div>
+      </div>
+
+      <!-- Nav Menu -->
+      <nav class="flex-1 p-4 space-y-1.5 overflow-y-auto" id="nav-menu">
+        <!-- Disuntikkan lewat JS -->
+      </nav>
+
+      <!-- Logout -->
+      <div class="p-4 border-t border-slate-800">
+        <button onclick="handleLogout()" class="w-full py-2.5 bg-red-600/10 hover:bg-red-600 text-red-400 hover:text-white rounded-xl text-xs font-bold transition flex items-center justify-center gap-2">
+          <i class="fas fa-sign-out-alt"></i> Keluar Aplikasi
+        </button>
+      </div>
+    </aside>
+
+    <!-- Content Workspace -->
+    <main class="flex-1 flex flex-col h-screen overflow-hidden">
+      <!-- Header -->
+      <header class="bg-white border-b px-6 py-4 flex justify-between items-center z-10 shadow-sm">
+        <div>
+          <h3 class="text-lg font-bold text-slate-800" id="header-title">Dashboard</h3>
+          <p class="text-xs text-slate-400" id="header-desc">Selamat datang di portal e-surat</p>
+        </div>
+        <div class="flex items-center gap-4">
+          <!-- Tombol Data Inputan Pengaju (Langsung Buka Spreadsheet) -->
+          <button onclick="window.open('https://drive.google.com/file/d/1rGxNVwCUmkZ1WmKe3n-ym3QBjlROcBgl/view?usp=drive_link', '_blank')" class="hidden md:flex bg-white border border-slate-200 text-slate-600 hover:text-emerald-700 hover:bg-emerald-50 px-3 py-1.5 rounded-lg text-xs font-bold transition items-center gap-2 shadow-sm">
+            <i class="fas fa-file-excel text-emerald-600"></i> Contoh Surat Aktif Kuliah
+          </button>
+          
+          <span class="text-xs font-semibold text-slate-500 bg-slate-100 px-3 py-1.5 rounded-lg" id="header-date">Selasa, 19 Mei 2026</span>
+          <div class="w-px h-6 bg-slate-200"></div>
+          <div class="relative">
+            <span class="absolute -top-0.5 -right-0.5 w-2 h-2 bg-emerald-500 rounded-full ring-2 ring-white"></span>
+            <i class="fas fa-bell text-slate-400 text-lg hover:text-slate-600 cursor-pointer"></i>
+          </div>
+        </div>
+      </header>
+
+      <!-- Dynamic Content Wrapper -->
+      <div class="flex-1 overflow-y-auto p-6 bg-slate-50" id="view-wrapper">
+        <!-- Template disuntikkan di sini -->
+      </div>
+    </main>
+  </div>
+
+
+  <!-- ==================== TEMPLATE KONTEN VIEW ==================== -->
+
+  <!-- View 1: DASHBOARD UTAMA -->
+  <template id="view-dashboard">
+    <div class="space-y-6">
+      <!-- Row Kartu Statistik -->
+      <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <div class="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm flex items-center gap-4">
+          <div class="w-12 h-12 rounded-xl bg-blue-50 text-poltera-navy flex items-center justify-center text-xl shadow-inner"><i class="fas fa-file-invoice"></i></div>
+          <div><p class="text-xs font-semibold text-slate-400">Total Pengajuan</p><p class="text-2xl font-bold text-slate-800" id="stat-total">0</p></div>
+        </div>
+        <div class="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm flex items-center gap-4">
+          <div class="w-12 h-12 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center text-xl shadow-inner"><i class="fas fa-spinner fa-spin"></i></div>
+          <div><p class="text-xs font-semibold text-slate-400">Menunggu Verifikasi</p><p class="text-2xl font-bold text-slate-800" id="stat-pending">0</p></div>
+        </div>
+        <div class="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm flex items-center gap-4">
+          <div class="w-12 h-12 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center text-xl shadow-inner"><i class="fas fa-check-circle"></i></div>
+          <div><p class="text-xs font-semibold text-slate-400">Disetujui / Selesai</p><p class="text-2xl font-bold text-slate-800" id="stat-done">0</p></div>
+        </div>
+        <div class="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm flex items-center gap-4">
+          <div class="w-12 h-12 rounded-xl bg-rose-50 text-rose-600 flex items-center justify-center text-xl shadow-inner"><i class="fas fa-ban"></i></div>
+          <div><p class="text-xs font-semibold text-slate-400">Pengajuan Ditolak</p><p class="text-2xl font-bold text-slate-800" id="stat-rejected">0</p></div>
+        </div>
+      </div>
+
+      <!-- Banner Alur -->
+      <div class="bg-gradient-to-r from-poltera-navy to-slate-900 text-white rounded-2xl p-6 shadow-xl flex flex-col md:flex-row justify-between items-center gap-6">
+        <div class="space-y-1.5">
+          <h4 class="text-lg font-bold">Surat Keterangan Aktif Kuliah Digital</h4>
+          <p class="text-xs text-slate-300 max-w-xl">Menggunakan tanda tangan elektronik berbasis QR Code yang terenkripsi aman. Berkas divalidasi dan diolah langsung dari basis data mahasiswa POLTERA.</p>
+        </div>
+        <button onclick="changeView('riwayat')" class="bg-poltera-accent hover:bg-amber-600 text-white px-5 py-3 rounded-xl font-bold text-xs transition shadow-lg shadow-amber-500/10"><i class="fas fa-list mr-1"></i> Tinjau Antrean</button>
+      </div>
+
+      <!-- Detail Layanan & Pejabat -->
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div class="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm lg:col-span-2">
+          <h4 class="font-bold text-sm text-slate-800 mb-4 border-b pb-2"><i class="fas fa-chart-bar text-poltera-navy mr-1.5"></i>Statistik Mingguan Pengajuan</h4>
+          <div class="h-44 flex items-end justify-between pt-4 px-4">
+            <div class="flex flex-col items-center gap-2 w-full"><div class="w-8 bg-slate-200 rounded-t h-12"></div><span class="text-[10px] text-slate-400 font-bold">Sen</span></div>
+            <div class="flex flex-col items-center gap-2 w-full"><div class="w-8 bg-slate-200 rounded-t h-20"></div><span class="text-[10px] text-slate-400 font-bold">Sel</span></div>
+            <div class="flex flex-col items-center gap-2 w-full"><div class="w-8 bg-blue-600 rounded-t h-32 shadow-lg shadow-blue-200"></div><span class="text-[10px] text-slate-400 font-bold">Rab</span></div>
+            <div class="flex flex-col items-center gap-2 w-full"><div class="w-8 bg-slate-200 rounded-t h-14"></div><span class="text-[10px] text-slate-400 font-bold">Kam</span></div>
+            <div class="flex flex-col items-center gap-2 w-full"><div class="w-8 bg-blue-500 rounded-t h-24"></div><span class="text-[10px] text-slate-400 font-bold">Jum</span></div>
+          </div>
+        </div>
+
+        <div class="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm flex flex-col justify-between">
+          <div>
+            <h4 class="font-bold text-sm text-slate-800 mb-3 border-b pb-2"><i class="fas fa-signature text-poltera-navy mr-1.5"></i>Pejabat Penandatangan</h4>
+            <div class="bg-slate-50 p-4 rounded-xl border border-slate-100 space-y-1">
+              <p class="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Wakil Direktur Bidang Akademik</p>
+              <p class="font-bold text-slate-800 text-sm">M. Musta’in, M.T.</p>
+              <p class="text-xs text-slate-500 font-mono">NIP: 198201252014041001</p>
+            </div>
+          </div>
+          <p class="text-[10px] text-emerald-600 font-semibold bg-emerald-50 p-2.5 rounded-lg border border-emerald-100 mt-3 flex items-center gap-1.5"><i class="fas fa-lock"></i> Tanda tangan terenkripsi aman secara otomatis.</p>
+        </div>
+      </div>
+    </div>
+  </template>
+
+  <!-- View 2: FORM PENGAJUAN (Mahasiswa) -->
+  <template id="view-pengajuan">
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      
+      <!-- Panel Input -->
+      <div class="lg:col-span-2 bg-white rounded-2xl border border-slate-100 p-6 shadow-sm space-y-6">
+        <div class="border-b pb-3">
+          <h4 class="font-bold text-base text-slate-800">Form Permohonan Surat Pernyataan</h4>
+          <p class="text-xs text-slate-400">Konfirmasi data profil mahasiswa Anda sebelum mengirim pengajuan.</p>
+        </div>
+
+        <!-- Form Pengisian data -->
+        <form id="form-permohonan" class="space-y-6" onsubmit="doSubmitPermohonan(event)">
+          
+          <!-- Biodata Mahasiswa (Terkunci Sesuai NIM Login) -->
+          <div class="space-y-4">
+            <h5 class="text-xs font-bold text-poltera-navy uppercase border-b pb-1 tracking-wider">A. Informasi Akademik (SIAKAD)</h5>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label class="block text-xs font-semibold text-slate-400 mb-1">Nama Lengkap</label>
+                <input type="text" id="mhs-nama" readonly class="w-full bg-slate-100 border border-slate-200 text-slate-700 font-bold rounded-xl p-3 text-xs focus:outline-none">
+              </div>
+              <div>
+                <label class="block text-xs font-semibold text-slate-400 mb-1">Nomor Induk Mahasiswa (NIM)</label>
+                <input type="text" id="mhs-nim" readonly class="w-full bg-slate-100 border border-slate-200 text-slate-500 font-mono rounded-xl p-3 text-xs focus:outline-none">
+              </div>
+              <div class="col-span-2 md:col-span-1">
+                <label class="block text-xs font-semibold text-slate-400 mb-1">Program Studi / Jurusan</label>
+                <input type="text" id="mhs-prodi" readonly class="w-full bg-slate-100 border border-slate-200 text-slate-500 rounded-xl p-3 text-xs focus:outline-none">
+              </div>
+              
+              <!-- FITUR 2: Semester, Tahun Akademik, Lama Studi Otomatis (READONLY) -->
+              <div class="grid grid-cols-3 gap-2 col-span-2 md:col-span-1">
+                <div>
+                  <label class="block text-[11px] font-semibold text-slate-400 mb-1">Semester</label>
+                  <input type="text" id="mhs-semester" readonly class="w-full bg-slate-100 border border-slate-200 text-slate-500 rounded-xl p-3 text-xs focus:outline-none text-center">
+                </div>
+                <div>
+                  <label class="block text-[11px] font-semibold text-slate-400 mb-1">Thn Akademik</label>
+                  <input type="text" id="mhs-tahun-akad" readonly class="w-full bg-slate-100 border border-slate-200 text-slate-500 rounded-xl p-3 text-xs focus:outline-none text-center">
+                </div>
+                <div>
+                  <label class="block text-[11px] font-semibold text-slate-400 mb-1">Lama Studi</label>
+                  <input type="text" id="mhs-lama-studi" readonly class="w-full bg-slate-100 border border-slate-200 text-slate-500 rounded-xl p-3 text-xs focus:outline-none text-center">
+                </div>
+              </div>
+
+            </div>
+          </div>
+
+          <!-- Input Data Wali -->
+          <div class="space-y-4">
+            <h5 class="text-xs font-bold text-poltera-navy uppercase border-b pb-1 tracking-wider">B. Data Orang Tua / Wali</h5>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label class="block text-xs font-semibold text-slate-500 mb-1">Nama Orang Tua/Wali <span class="text-red-500">*</span></label>
+                <input type="text" id="ortu-nama" required placeholder="Nama Lengkap sesuai Kartu Keluarga" class="w-full border border-slate-200 rounded-xl p-3 text-xs focus:ring-1 focus:ring-poltera-navy focus:outline-none">
+              </div>
+              <div>
+                <label class="block text-xs font-semibold text-slate-500 mb-1">NIP Wali (Isi '-' jika tidak ada NIP)</label>
+                <input type="text" id="ortu-nip" placeholder="Isi '-' jika bukan PNS/Pegawai" class="w-full border border-slate-200 rounded-xl p-3 text-xs focus:ring-1 focus:ring-poltera-navy focus:outline-none">
+              </div>
+              <div>
+                <label class="block text-xs font-semibold text-slate-500 mb-1">Pangkat/Golongan (Jika PNS)</label>
+                <input type="text" id="ortu-pangkat" placeholder="Isi '-' jika tidak ada" class="w-full border border-slate-200 rounded-xl p-3 text-xs focus:ring-1 focus:ring-poltera-navy focus:outline-none">
+              </div>
+              <div>
+                <label class="block text-xs font-semibold text-slate-500 mb-1">Instansi / Unit Kerja Orang Tua <span class="text-red-500">*</span></label>
+                <input type="text" id="ortu-instansi" required placeholder="Contoh: Dinas Perhubungan Sampang / Swasta" class="w-full border border-slate-200 rounded-xl p-3 text-xs focus:ring-1 focus:ring-poltera-navy focus:outline-none">
+              </div>
+            </div>
+          </div>
+
+          <!-- Keperluan & Kontak -->
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4 border-t border-slate-100 pt-4">
+            <div>
+              <label class="block text-xs font-semibold text-slate-500 mb-1">Nomor WhatsApp Aktif (Untuk Notif) <span class="text-red-500">*</span></label>
+              <input type="text" id="mhs-hp" required placeholder="Contoh: 628123456789" class="w-full border border-slate-200 rounded-xl p-3 text-xs focus:ring-1 focus:ring-poltera-navy focus:outline-none">
+            </div>
+            <div>
+              <label class="block text-xs font-semibold text-slate-500 mb-1">Keperluan / Tujuan Surat <span class="text-red-500">*</span></label>
+              <select id="mhs-keperluan" required class="w-full border border-slate-200 rounded-xl p-3 text-xs focus:ring-1 focus:ring-poltera-navy focus:outline-none">
+                <!-- Dropdown otomatis disuntikkan via GAS dari KEPERLUAN -->
+              </select>
+            </div>
+          </div>
+
+          <div class="text-right border-t border-slate-100 pt-4">
+            <button type="submit" class="bg-emerald-600 hover:bg-emerald-700 text-white px-6 py-3 rounded-xl font-bold text-xs shadow-md shadow-emerald-500/20 transition"><i class="fas fa-paper-plane mr-1.5"></i> Kirim Pengajuan Surat</button>
+          </div>
+        </form>
+      </div>
+
+      <!-- Sisi Panduan -->
+      <div class="space-y-4">
+        <div class="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm space-y-4">
+          <h5 class="font-bold text-sm text-slate-800 border-b pb-2"><i class="fas fa-info-circle text-poltera-navy mr-1"></i>Informasi Layanan</h5>
+          <ul class="text-xs text-slate-500 space-y-3 list-disc pl-4 leading-relaxed">
+            <li>Sistem otomatis memverifikasi status akademik Anda di SIAKAD.</li>
+            <li>Anda akan dikirimi notifikasi WhatsApp dari sistem **eSurat POLTERA** setelah pengajuan dikirim dan disetujui.</li>
+            <li>Status verifikasi dan file PDF dapat diunduh langsung di menu <span class="text-slate-800 font-bold">Riwayat Pengajuan</span>.</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </template>
+
+  <!-- View 3: ANTREAN & RIWAYAT TABEL -->
+  <template id="view-riwayat">
+    <div class="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden animate-fade-in">
+      <div class="p-5 border-b flex flex-col md:flex-row justify-between items-center gap-4 bg-slate-50/50">
+        <div>
+          <h4 class="font-bold text-base text-slate-800" id="table-title-view">Daftar Pengajuan Surat</h4>
+          <p class="text-xs text-slate-400">Gunakan kolom pencarian di samping untuk mempercepat penemuan berkas.</p>
+        </div>
+        <div class="flex items-center gap-2 w-full md:w-auto">
+          <input type="text" id="cari-input" onkeyup="handleFilterTable(this)" placeholder="Cari berdasarkan NIM atau Nama..." class="w-full md:w-64 border border-slate-200 rounded-xl px-4 py-2 text-xs focus:outline-none focus:border-poltera-navy">
+        </div>
+      </div>
+
+      <div class="overflow-x-auto">
+        <table class="w-full text-left border-collapse" id="main-table-data">
+          <thead>
+            <tr class="bg-slate-100/70 text-slate-500 text-[10px] font-extrabold uppercase tracking-wider border-b">
+              <th class="p-4">Tanggal Pengajuan</th>
+              <th class="p-4">No Surat</th>
+              <th class="p-4">Mahasiswa / NIM</th>
+              <th class="p-4">Tujuan / Keperluan</th>
+              <th class="p-4 text-center">Status</th>
+              <th class="p-4 text-center">Tindakan / Dokumen</th>
+            </tr>
+          </thead>
+          <tbody class="text-xs divide-y divide-slate-100" id="table-body-target">
+            <!-- Data disuntikkan lewat JS -->
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </template>
+
+
+  <!-- ==================== MODAL PREVIEW SURAT (A4 DOKUMEN) ==================== -->
+  <div id="pdf-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center hide p-4 transition-all duration-200">
+    <div class="bg-white rounded-2xl shadow-2xl w-full max-w-4xl max-h-[92vh] flex flex-col overflow-hidden">
+      <!-- Header Preview -->
+      <div class="p-4 border-b flex justify-between items-center bg-slate-50">
+        <div>
+          <h4 class="font-bold text-slate-800 text-sm">Validasi & Pratinjau Inputan Data</h4>
+          <p class="text-[10px] text-slate-400">Tampilan pengecekan kesesuaian data pengajuan mahasiswa</p>
+        </div>
+        <button onclick="closeModal()" class="w-8 h-8 rounded-lg hover:bg-slate-200 text-slate-400 hover:text-rose-600 transition flex items-center justify-center"><i class="fas fa-times text-lg"></i></button>
+      </div>
+
+      <!-- Kertas A4 Preview Scrollable -->
+      <div class="p-6 overflow-y-auto flex-1 bg-slate-500/10 flex justify-center items-start" id="modal-scroll-area">
+        <div class="kertas-dokumen" id="kertas-pdf-preview">
+          
+          <!-- KOP SURAT POLTERA -->
+          <div class="flex items-center border-b-[3px] border-black pb-4 mb-6">
+            <div class="w-16 h-16 mr-4 flex-shrink-0 flex items-center justify-center">
+              <svg viewBox="0 0 100 100" class="w-14 h-14 text-blue-900">
+                <circle cx="50" cy="50" r="45" fill="none" stroke="currentColor" stroke-width="4"/>
+                <polygon points="50,15 80,45 65,45 65,80 35,80 35,45 20,45" fill="currentColor"/>
+                <circle cx="50" cy="50" r="12" fill="white"/>
+              </svg>
+            </div>
+            <div class="text-center w-full">
+              <h2 class="text-[11px] font-bold uppercase tracking-wide">KEMENTERIAN PENDIDIKAN, KEBUDAYAAN, RISET, DAN TEKNOLOGI</h2>
+              <h1 class="text-[14px] font-bold uppercase tracking-wider">POLITEKNIK NEGERI MADURA</h1>
+              <p class="text-[9px] font-semibold">Jl. Raya Camplong Km. 4, Sampang, Jawa Timur 69281</p>
+              <p class="text-[8px]">Laman: www.poltera.ac.id | Pos-el: info@poltera.ac.id</p>
+            </div>
+          </div>
+
+          <!-- Judul Surat -->
+          <div class="text-center mb-6">
+            <h3 class="font-bold underline text-[13px] uppercase tracking-wide">SURAT PERNYATAAN MASIH KULIAH</h3>
+            <p class="text-[11px]">Nomor: <span id="doc-view-no" class="font-mono">Menunggu Persetujuan...</span></p>
+          </div>
+
+          <!-- Isi Dokumen -->
+          <div class="text-justify space-y-3 text-[11px] leading-relaxed">
+            <p>Yang bertanda tangan di bawah ini:</p>
+            <table class="w-full ml-5 mb-2 border-collapse">
+              <tr><td class="w-40 py-0.5">Nama</td><td>: <strong>M. Musta’in, M.T.</strong></td></tr>
+              <tr><td class="py-0.5">NIP</td><td>: 198201252014041001</td></tr>
+              <tr><td class="py-0.5">Pangkat/Golongan/Ruang</td><td>: Penata Tingkat 1/III/d</td></tr>
+              <tr><td class="py-0.5">Jabatan</td><td>: Wakil Direktur Bidang Akademik</td></tr>
+            </table>
+
+            <p>Dengan ini menyatakan dengan sebenarnya, bahwa:</p>
+            <table class="w-full ml-5 mb-2 border-collapse">
+              <tr><td class="w-40 py-0.5">Nama</td><td>: <strong id="doc-view-mhs-nama" class="uppercase">...</strong></td></tr>
+              <tr><td class="py-0.5">Nomor Pokok</td><td>: <span id="doc-view-mhs-nim" class="font-mono">...</span></td></tr>
+            </table>
+
+            <p>adalah benar mahasiswa:</p>
+            <table class="w-full ml-5 mb-2 border-collapse">
+              <tr><td class="w-40 py-0.5">Institusi</td><td>: Politeknik Negeri Madura</td></tr>
+              <tr><td class="py-0.5">Program Studi/semester/tahap</td><td>: <span id="doc-view-mhs-prodi">...</span></td></tr>
+              <tr><td class="py-0.5">Pada tahun akademik</td><td>: <span id="doc-view-tahun-akad">...</span></td></tr>
+              <tr><td class="py-0.5">Lama Studi</td><td>: <span id="doc-view-lama-studi">3 Tahun</span></td></tr>
+            </table>
+
+            <p>Dan bahwa Orang Tua/Wali anak tersebut adalah:</p>
+            <table class="w-full ml-5 mb-2 border-collapse">
+              <tr><td class="w-40 py-0.5">Nama</td><td>: <span id="doc-view-ortu-nama" class="font-bold">...</span></td></tr>
+              <tr><td class="py-0.5">NIP</td><td>: <span id="doc-view-ortu-nip">...</span></td></tr>
+              <tr><td class="py-0.5">Pangkat/Golongan/Ruang</td><td>: <span id="doc-view-ortu-pangkat">...</span></td></tr>
+              <tr><td class="py-0.5">Instansi</td><td>: <span id="doc-view-ortu-instansi">...</span></td></tr>
+            </table>
+
+            <p>Demikian surat pernyataan ini dibuat dengan sebenar-benarnya agar dapat dipergunakan sebagai Persyaratan <strong class="underline" id="doc-view-keperluan">...</strong> mahasiswa tersebut.</p>
+          </div>
+
+          <!-- Tanda Tangan & QR Code Verifikasi -->
+          <div class="mt-14 flex justify-between items-end">
+            <div class="text-center pl-4">
+              <div id="qrcode-box" class="border p-1 bg-white inline-block shadow-sm"></div>
+              <p class="text-[8px] text-slate-400 mt-1 uppercase tracking-wider">Verifikasi Publik</p>
+            </div>
+            
+            <div class="w-56 text-left relative pr-4">
+              <p class="mb-14">Sampang, <span id="doc-view-tgl-terbit">...</span><br>Wakil Direktur Bidang Akademik,</p>
+              
+              <!-- Certificate Stamp TTE -->
+              <div class="absolute right-8 bottom-14 border border-blue-600/60 rounded px-2 py-1 rotate-12 bg-blue-50/10 text-blue-600 opacity-60 flex items-center gap-1">
+                <i class="fas fa-shield-alt text-[9px]"></i>
+                <span class="font-extrabold text-[8px] uppercase tracking-wider">E-SIGNATURE PENDING</span>
+              </div>
+              
+              <p class="font-bold underline">M. Musta’in, M.T.</p>
+              <p class="text-[9px]">NIP 198201252014041001</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Action Modal -->
+      <div class="p-4 border-t bg-slate-50 flex justify-end gap-2.5">
+        <button onclick="closeModal()" class="px-5 py-2.5 bg-slate-800 hover:bg-slate-900 text-white rounded-xl text-xs font-bold transition">Tutup Pengecekan</button>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- ==================== MODAL PENOLAKAN SURAT ==================== -->
+  <div id="reject-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center hide p-4">
+    <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden">
+      <div class="p-5 border-b flex justify-between items-center bg-slate-50">
+        <h4 class="font-bold text-slate-800 text-sm">Alasan Penolakan Pengajuan</h4>
+        <button onclick="closeRejectModal()" class="text-slate-400 hover:text-rose-500"><i class="fas fa-times text-lg"></i></button>
+      </div>
+      <div class="p-5 space-y-4">
+        <div>
+          <label class="block text-xs font-semibold text-slate-500 mb-1">Catatan Alasan Penolakan <span class="text-red-500">*</span></label>
+          <textarea id="reject-reason" rows="3" class="w-full border border-slate-200 rounded-xl p-3 text-xs focus:ring-1 focus:ring-poltera-navy focus:outline-none" placeholder="Masukkan alasan, misal: Data Instansi Ortu Tidak Lengkap"></textarea>
+        </div>
+      </div>
+      <div class="p-4 border-t bg-slate-50 flex justify-end gap-2.5">
+        <button onclick="closeRejectModal()" class="px-4 py-2 border rounded-xl text-xs font-bold text-slate-500 bg-white">Batal</button>
+        <button onclick="submitRejectForm()" class="px-4 py-2 bg-rose-600 hover:bg-rose-700 text-white rounded-xl text-xs font-bold shadow">Kirim Penolakan</button>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- ==================== TOAST NOTIFIKASI ==================== -->
+  <div id="app-toast" class="fixed bottom-5 right-5 bg-white border-l-4 border-slate-900 shadow-2xl rounded-xl px-5 py-4 hide flex items-center gap-3.5 z-50 transition-all duration-300">
+    <div class="w-8 h-8 rounded-full bg-slate-100 text-slate-800 flex items-center justify-center text-sm" id="toast-icon-box"><i class="fas fa-info-circle"></i></div>
+    <div>
+      <h5 class="font-bold text-slate-800 text-xs" id="toast-title">Notifikasi</h5>
+      <p class="text-[10px] text-slate-500 mt-0.5" id="toast-desc">Memproses...</p>
+    </div>
+  </div>
+
+
+  <!-- ==================== JAVASCRIPT SYSTEM CONTROLLER ==================== -->
+  <script>
+    // State Aplikasi
+    let appState = {
+      role: null,
+      user: null,
+      currentView: 'dashboard',
+      db: [], // Database utama
+      selectedMhs: null,
+      rejectTargetId: null
+    };
+
+    // Database Simulasi Kampus (Offline Mode)
+    const mockMhsDatabase = [
+      { nim: "33112501001", nama: "Moh Amru", prodi: "D3 Teknik Listrik Industri", semester: "III", tahun_akademik: "2026/2027", lama_studi: "3 Tahun", status: "Aktif", angkatan: "2025" }
+    ];
+
+    let localBackupPengajuan = [];
+
+    window.onload = function() {
+      document.getElementById('header-date').innerText = new Date().toLocaleDateString('id-ID', {
+        weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
+      });
+      getRiwayatAwalPemuatan();
+    };
+
+    function getRiwayatAwalPemuatan() {
+      if (typeof google !== 'undefined' && google.script && google.script.run) {
+        google.script.run
+        .withSuccessHandler(list => { appState.db = list; })
+        .withFailureHandler(err => { appState.db = [...localBackupPengajuan]; })
+        .getRiwayatPengajuan('all', '');
+      } else {
+        appState.db = [...localBackupPengajuan];
+      }
+    }
+
+    let selectedAuthRole = '';
+    
+    function bukaFormKredensial(role) {
+      selectedAuthRole = role;
+      document.getElementById('role-selection-section').classList.add('hide');
+      document.getElementById('credential-form-section').classList.remove('hide');
+      
+      const portalLabel = document.getElementById('target-portal-label');
+      const usernameLabel = document.getElementById('label-field-username');
+      const passwordContainer = document.getElementById('password-field-container');
+      const usernameInput = document.getElementById('auth-username');
+      const passwordInput = document.getElementById('auth-password');
+      
+      usernameInput.value = '';
+      passwordInput.value = '';
+
+      if (role === 'mahasiswa') {
+        portalLabel.innerText = "Portal Mahasiswa POLTERA";
+        usernameLabel.innerText = "Nomor Induk Mahasiswa (NIM)";
+        usernameInput.placeholder = "Cth: 33112501001";
+        passwordContainer.classList.add('hide');
+        passwordInput.removeAttribute('required');
+      } else if (role === 'admin') {
+        portalLabel.innerText = "Otorisasi Admin BAAK";
+        usernameLabel.innerText = "Username Admin";
+        usernameInput.placeholder = "Masukkan username admin";
+        passwordContainer.classList.remove('hide');
+        passwordInput.setAttribute('required', 'true');
+      } else {
+        portalLabel.innerText = "Otorisasi Wakil Direktur I";
+        usernameLabel.innerText = "Username Wadir";
+        usernameInput.placeholder = "Masukkan username wadir";
+        passwordContainer.classList.remove('hide');
+        passwordInput.setAttribute('required', 'true');
+      }
+    }
+
+    function kembaliKePilihanRole() {
+      document.getElementById('credential-form-section').classList.add('hide');
+      document.getElementById('role-selection-section').classList.remove('hide');
+    }
+
+    // UPDATE: Validasi Login diarahkan langsung ke fungsi Backend
+    function prosesVerifikasiKredensial(event) {
+      event.preventDefault();
+      const userVal = document.getElementById('auth-username').value.trim();
+      const passVal = document.getElementById('auth-password').value;
+
+      if (selectedAuthRole === 'mahasiswa') {
+        showToast("Mencari...", "Menghubungkan ke server SIAKAD...", "fa-spinner fa-spin");
+        if (typeof google !== 'undefined' && google.script && google.script.run) {
+          google.script.run
+            .withSuccessHandler(res => {
+              if (res.status === 'success') {
+                appState.role = 'mahasiswa';
+                appState.user = { name: res.data.nama, nim: userVal, role: "Mahasiswa", prodi: res.data.prodi, semester: res.data.semester };
+                appState.selectedMhs = { ...res.data, nim: userVal };
+                masukKeSistem();
+              } else {
+                showToast("Ditolak", res.message || "NIM tidak terdaftar di database POLTERA.", "fa-ban");
+              }
+            })
+            .withFailureHandler(err => { 
+               const mhsFound = mockMhsDatabase.find(m => m.nim === userVal);
+               if(mhsFound) {
+                 appState.role = 'mahasiswa';
+                 appState.user = { name: mhsFound.nama, nim: mhsFound.nim, role: "Mahasiswa", prodi: mhsFound.prodi, semester: mhsFound.semester };
+                 appState.selectedMhs = mhsFound;
+                 masukKeSistem();
+               } else {
+                 showToast("SIAKAD Offline", "Gagal memvalidasi NIM.", "fa-ban"); 
+               }
+            })
+            .cariMahasiswaByNIM(userVal);
+        } else {
+           const mhsFound = mockMhsDatabase.find(m => m.nim === userVal);
+           if(mhsFound) {
+             appState.role = 'mahasiswa';
+             appState.user = { name: mhsFound.nama, nim: mhsFound.nim, role: "Mahasiswa", prodi: mhsFound.prodi, semester: mhsFound.semester };
+             appState.selectedMhs = mhsFound;
+             masukKeSistem();
+           } else {
+             showToast("Sistem Offline", "Gagal menghubungi server.", "fa-ban");
+           }
+        }
+      } else if (selectedAuthRole === 'admin' || selectedAuthRole === 'pimpinan') {
+        showToast("Verifikasi...", "Mengecek kredensial ke server...", "fa-spinner fa-spin");
+        
+        // Panggil fungsi Backend verifikasiLoginAdmin yang terhubung ke Sheet "DATA_ADMIN"
+        if (typeof google !== 'undefined' && google.script && google.script.run) {
+          google.script.run
+            .withSuccessHandler(res => {
+              if (res.status === 'success') {
+                if (res.role === selectedAuthRole) {
+                  appState.role = res.role;
+                  appState.user = { name: res.name, role: res.role === 'admin' ? "Administrator" : "Wakil Direktur I" };
+                  masukKeSistem();
+                } else {
+                  showToast("Akses Ditolak", "Gunakan portal akses yang sesuai dengan jabatan Anda.", "fa-ban");
+                }
+              } else {
+                showToast("Akses Ditolak", res.message, "fa-ban");
+              }
+            })
+            .withFailureHandler(err => {
+              showToast("Sistem Offline", "Gagal menghubungi server verifikasi.", "fa-ban");
+            })
+            .verifikasiLoginAdmin(userVal, passVal);
+        } else {
+          // Fallback lokal jika script.run tidak tersedia (misal dijalankan di HTML murni)
+          if (userVal === "admin" && passVal === "admin123" && selectedAuthRole === 'admin') {
+            appState.role = 'admin'; appState.user = { name: "BAAK POLTERA", role: "Administrator" }; masukKeSistem();
+          } else if (userVal === "wadir" && passVal === "wadir123" && selectedAuthRole === 'pimpinan') {
+            appState.role = 'pimpinan'; appState.user = { name: "M. Musta’in, M.T.", role: "Wakil Direktur I" }; masukKeSistem();
+          } else {
+            showToast("Sistem Offline", "Gagal terhubung ke database server.", "fa-ban");
+          }
+        }
+      }
+    }
+
+    function masukKeSistem() {
+      document.getElementById('nav-user-name').innerText = appState.user.name;
+      document.getElementById('nav-user-role').innerText = appState.user.role;
+      document.getElementById('nav-initial').innerText = appState.user.name.charAt(0);
+
+      buildSidebarNavigation();
+
+      document.getElementById('login-screen').classList.add('hide');
+      document.getElementById('app-screen').classList.remove('hide');
+
+      changeView('dashboard');
+      showToast("Akses Diberikan", `Selamat bekerja, ${appState.user.role}!`, "fa-user-check");
+    }
+
+    function handleLogout() {
+      appState.role = null;
+      appState.user = null;
+      document.getElementById('app-screen').classList.add('hide');
+      document.getElementById('login-screen').classList.remove('hide');
+      kembaliKePilihanRole();
+    }
+
+    function buildSidebarNavigation() {
+      const container = document.getElementById('nav-menu');
+      let nav = `
+        <button onclick="changeView('dashboard')" class="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-left text-xs font-bold transition ${appState.currentView === 'dashboard' ? 'bg-blue-600 text-white shadow-lg shadow-blue-500/15' : 'text-slate-400 hover:bg-slate-800 hover:text-white'}">
+          <i class="fas fa-home text-sm"></i> Dashboard Utama
+        </button>
+      `;
+
+      if(appState.role === 'mahasiswa') {
+        nav += `
+          <button onclick="changeView('pengajuan')" class="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-left text-xs font-bold transition ${appState.currentView === 'pengajuan' ? 'bg-blue-600 text-white shadow-lg shadow-blue-500/15' : 'text-slate-400 hover:bg-slate-800 hover:text-white'}">
+            <i class="fas fa-edit text-sm"></i> Ajukan Surat Baru
+          </button>
+          <button onclick="changeView('riwayat')" class="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-left text-xs font-bold transition ${appState.currentView === 'riwayat' ? 'bg-blue-600 text-white shadow-lg shadow-blue-500/15' : 'text-slate-400 hover:bg-slate-800 hover:text-white'}">
+            <i class="fas fa-history text-sm"></i> Riwayat Pengajuan
+          </button>
+        `;
+      } else {
+        nav += `
+          <button onclick="changeView('riwayat')" class="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-left text-xs font-bold transition ${appState.currentView === 'riwayat' ? 'bg-blue-600 text-white shadow-lg shadow-blue-500/15' : 'text-slate-400 hover:bg-slate-800 hover:text-white'}">
+            <i class="fas fa-tasks text-sm"></i> Antrean Surat <span class="bg-amber-500 text-white text-[9px] px-2 py-0.5 rounded-full ml-auto font-extrabold" id="badge-nav-pending">0</span>
+          </button>
+        `;
+      }
+      container.innerHTML = nav;
+    }
+
+    function changeView(viewName) {
+      appState.currentView = viewName;
+      buildSidebarNavigation();
+
+      const wrapper = document.getElementById('view-wrapper');
+      const template = document.getElementById(`view-${viewName}`).content.cloneNode(true);
+      wrapper.innerHTML = '';
+      wrapper.appendChild(template);
+
+      const hTitle = document.getElementById('header-title');
+      const hDesc = document.getElementById('header-desc');
+
+      if(viewName === 'dashboard') {
+        hTitle.innerText = "Dashboard Statistik";
+        hDesc.innerText = "Monitoring Legitimasi Surat Pernyataan POLTERA";
+        fetchDatabaseMetrics();
+      } else if(viewName === 'pengajuan') {
+        hTitle.innerText = "Buat Pengajuan Surat";
+        hDesc.innerText = "Lengkapi form data mahasiswa dan data orang tua/wali";
+        
+        if(appState.selectedMhs) {
+          document.getElementById('mhs-nama').value = appState.selectedMhs.nama || "";
+          document.getElementById('mhs-nim').value = appState.selectedMhs.nim || "";
+          document.getElementById('mhs-prodi').value = appState.selectedMhs.prodi || "";
+          document.getElementById('mhs-semester').value = appState.selectedMhs.semester || "-";
+          document.getElementById('mhs-tahun-akad').value = appState.selectedMhs.tahun_akademik || "-";
+          document.getElementById('mhs-lama-studi').value = appState.selectedMhs.lama_studi || "3 Tahun";
+        }
+        fetchMasterKeperluanDropdown();
+      } else {
+        hTitle.innerText = appState.role === 'mahasiswa' ? "Riwayat Surat Saya" : "Antrean Pengajuan Surat";
+        hDesc.innerText = "Tinjau status verifikasi, nomor surat otomatis, dan unduh berkas PDF";
+        renderMainDataTable();
+      }
+    }
+
+    function fetchMasterKeperluanDropdown() {
+      const select = document.getElementById('mhs-keperluan');
+      if(!select) return;
+      select.innerHTML = `<option value="">-- Menghubungkan database... --</option>`;
+      
+      if (typeof google !== 'undefined' && google.script && google.script.run) {
+        google.script.run
+          .withSuccessHandler(list => {
+            let opt = `<option value="">-- Pilih Keperluan Surat --</option>`;
+            list.forEach(k => { opt += `<option value="${k}">${k}</option>`; });
+            select.innerHTML = opt;
+          })
+          .withFailureHandler(err => { loadKeperluanFallback(select); })
+          .getMasterKeperluan();
+      } else {
+        loadKeperluanFallback(select);
+      }
+    }
+
+    function loadKeperluanFallback(select) {
+      select.innerHTML = `
+        <option value="">-- Pilih Keperluan Surat --</option>
+        <option value="Tunjangan Gaji Orang Tua">Tunjangan Gaji Orang Tua</option>
+        <option value="Persyaratan Beasiswa">Persyaratan Beasiswa</option>
+        <option value="Persyaratan BPJS Kesehatan">Persyaratan BPJS Kesehatan</option>
+        <option value="Lainnya">Lainnya...</option>
+      `;
+    }
+
+    function doSubmitPermohonan(e) {
+      e.preventDefault();
+
+      const payload = {
+        nim: appState.selectedMhs.nim,
+        nama: appState.selectedMhs.nama,
+        prodi: appState.selectedMhs.prodi,
+        semester: document.getElementById('mhs-semester').value,
+        tahun_akademik: document.getElementById('mhs-tahun-akad').value,
+        lama_studi: document.getElementById('mhs-lama-studi').value,
+        ortu_nama: document.getElementById('ortu-nama').value,
+        ortu_nip: document.getElementById('ortu-nip').value || "-",
+        ortu_pangkat: document.getElementById('ortu-pangkat').value || "-",
+        ortu_instansi: document.getElementById('ortu-instansi').value,
+        no_hp: document.getElementById('mhs-hp').value,
+        tujuan: document.getElementById('mhs-keperluan').value
+      };
+
+      showToast("Menyimpan", "Mengirim data permohonan ke server...", "fa-spinner fa-spin");
+
+      if (typeof google !== 'undefined' && google.script && google.script.run) {
+        google.script.run
+          .withSuccessHandler(res => {
+            if(res.status === 'success') {
+              showToast("Pengajuan Sukses", "Berkas tersimpan dan Notifikasi WA telah dikirim.", "fa-check");
+              
+              payload.id = res.id || ("SRT-" + Date.now());
+              payload.tanggal = new Date().toISOString().split('T')[0];
+              payload.status = "Menunggu Verifikasi";
+              payload.no_surat = "-";
+              payload.link_pdf = "#";
+              appState.db.unshift(payload);
+              
+              changeView('riwayat');
+            } else {
+              showToast("Error", res.message, "fa-times-circle");
+            }
+          })
+          .withFailureHandler(err => { saveMockPermohonan(payload); })
+          .simpanPengajuanSurat(payload);
+      } else {
+        saveMockPermohonan(payload);
+      }
+    }
+
+    function saveMockPermohonan(payload) {
+      showToast("Sukses Simpan", "Sistem demonstrasi menyimpan data baru.", "fa-check");
+      const newReq = {
+        id: "SRT-" + Date.now(), tanggal: new Date().toISOString().split('T')[0], nim: payload.nim,
+        nama: payload.nama, prodi: payload.prodi, semester: payload.semester, tahun_akademik: payload.tahun_akademik, lama_studi: payload.lama_studi,
+        ortu_nama: payload.ortu_nama, ortu_nip: payload.ortu_nip, ortu_pangkat: payload.ortu_pangkat,
+        ortu_instansi: payload.ortu_instansi, tujuan: payload.tujuan, status: "Menunggu Verifikasi",
+        no_surat: "-", link_pdf: "#", no_hp: payload.no_hp
+      };
+      appState.db.unshift(newReq);
+      localBackupPengajuan.unshift(newReq); 
+      changeView('riwayat');
+    }
+
+    function renderMainDataTable() {
+      const container = document.getElementById('table-body-target');
+      if(!container) return;
+
+      container.innerHTML = `<tr><td colspan="6" class="p-8 text-center text-slate-400 font-medium"><i class="fas fa-spinner fa-spin mr-1.5"></i>Membaca Berkas Surat...</td></tr>`;
+
+      if (typeof google !== 'undefined' && google.script && google.script.run) {
+        google.script.run
+          .withSuccessHandler(list => {
+            appState.db = list;
+            displayTableData(list);
+            updateNavBadges();
+          })
+          .withFailureHandler(err => {
+            displayTableData(appState.db);
+            updateNavBadges();
+          })
+          .getRiwayatPengajuan(appState.role, appState.user.nim);
+      } else {
+        displayTableData(appState.db);
+        updateNavBadges();
+      }
+    }
+
+    function displayTableData(data) {
+      const container = document.getElementById('table-body-target');
+      
+      let dataToShow = data;
+      if (appState.role === 'mahasiswa') {
+        dataToShow = data.filter(d => String(d.nim).trim() === String(appState.user.nim).trim());
+      }
+
+      if(dataToShow.length === 0) {
+        container.innerHTML = `<tr><td colspan="6" class="p-8 text-center text-slate-400 font-medium">Tidak ada riwayat berkas pengajuan.</td></tr>`;
+        return;
+      }
+
+      let markup = '';
+      dataToShow.forEach(d => {
+        let badge = '';
+        if(d.status === "Selesai") {
+          badge = `<span class="px-2.5 py-1 bg-emerald-50 text-emerald-600 border border-emerald-100 rounded-full font-bold tracking-wide flex items-center gap-1 w-fit mx-auto"><span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> Disetujui</span>`;
+        } else if(d.status === "Ditolak") {
+          badge = `<span class="px-2.5 py-1 bg-rose-50 text-rose-600 border border-rose-100 rounded-full font-bold tracking-wide flex items-center gap-1 w-fit mx-auto"><span class="w-1.5 h-1.5 rounded-full bg-rose-500"></span> Ditolak</span>`;
+        } else {
+          badge = `<span class="px-2.5 py-1 bg-amber-50 text-amber-600 border border-amber-100 rounded-full font-bold tracking-wide flex items-center gap-1 w-fit mx-auto animate-pulse"><span class="w-1.5 h-1.5 rounded-full bg-amber-500"></span> Menunggu</span>`;
+        }
+
+        let actionBtn = '';
+        if(d.status === "Selesai") {
+          actionBtn = `<button onclick="window.open('${d.link_pdf}', '_blank')" class="bg-rose-600 text-white px-3 py-1.5 rounded-lg text-[10px] font-bold hover:bg-rose-700 transition flex items-center gap-1 mx-auto shadow-sm"><i class="fas fa-file-pdf"></i> Lihat PDF</button>`;
+        } else if((appState.role === "admin" || appState.role === "pimpinan") && d.status === "Menunggu Verifikasi") {
+          actionBtn = `
+            <div class="flex items-center gap-1.5 justify-center">
+              <button onclick="openPreviewModal('${d.id}')" class="bg-slate-900 hover:bg-slate-800 text-white px-2.5 py-1.5 rounded-lg text-[10px] font-bold transition flex items-center gap-0.5 shadow-sm" title="Cek Inputan Mahasiswa"><i class="fas fa-eye"></i> Cek Data</button>
+              <button onclick="doApproveSurat('${d.id}')" class="bg-emerald-600 hover:bg-emerald-700 text-white px-2.5 py-1.5 rounded-lg text-[10px] font-bold transition flex items-center gap-0.5 shadow-sm"><i class="fas fa-check"></i> Setujui</button>
+              <button onclick="openRejectModal('${d.id}')" class="bg-rose-100 hover:bg-rose-200 text-rose-600 px-2.5 py-1.5 rounded-lg text-[10px] font-bold transition flex items-center gap-0.5"><i class="fas fa-times"></i> Tolak</button>
+            </div>
+          `;
+        } else {
+          actionBtn = `<span class="text-[10px] text-slate-400 italic font-semibold">Sedang Diproses</span>`;
+        }
+
+        const dObj = new Date(d.tanggal);
+        const formatTgl = !isNaN(dObj) ? dObj.toLocaleDateString('id-ID', { year:'numeric', month:'short', day:'numeric' }) : d.tanggal;
+
+        markup += `
+          <tr class="hover:bg-slate-50/50 transition border-b border-slate-100">
+            <td class="p-4 text-slate-500 font-semibold whitespace-nowrap">${formatTgl}</td>
+            <td class="p-4 font-mono text-xs font-bold">${d.no_surat}</td>
+            <td class="p-4">
+              <div>
+                <p class="font-bold text-slate-800">${d.nama}</p>
+                <p class="text-[10px] text-slate-400 font-mono">${d.nim} - ${d.prodi}</p>
+              </div>
+            </td>
+            <td class="p-4 text-xs font-medium text-slate-500 max-w-[150px] truncate" title="${d.tujuan}">${d.tujuan}</td>
+            <td class="p-4 text-center">${badge}</td>
+            <td class="p-4 text-center">${actionBtn}</td>
+          </tr>
+        `;
+      });
+
+      container.innerHTML = markup;
+    }
+
+    function updateNavBadges() {
+      const pendingCount = appState.db.filter(d => d.status === "Menunggu Verifikasi").length;
+      const bNav = document.getElementById('badge-nav-pending');
+      if(bNav) bNav.innerText = pendingCount;
+    }
+
+    function doApproveSurat(id) {
+      showToast("Menandatangani", "Melakukan E-Signature & Membuat PDF...", "fa-signature fa-spin");
+      
+      if (typeof google !== 'undefined' && google.script && google.script.run) {
+        google.script.run
+          .withSuccessHandler(res => {
+            if(res.status === 'success') {
+              showToast("Surat Terbit", "Nomor surat dan PDF resmi berhasil digenerate.", "fa-check-circle");
+              renderMainDataTable();
+            } else {
+              showToast("Gagal", res.message, "fa-times-circle");
+            }
+          })
+          .withFailureHandler(err => { approveMockSurat(id); })
+          .setujuiPengajuan(id, appState.user.name);
+      } else {
+        approveMockSurat(id);
+      }
+    }
+
+    function approveMockSurat(id) {
+      const idx = appState.db.findIndex(d => d.id === id);
+      if(idx > -1) {
+        const noUrut = String(appState.db.filter(d => d.status === "Selesai").length + 1).padStart(3, '0');
+        appState.db[idx].status = "Selesai";
+        appState.db[idx].no_surat = `${noUrut}/PL34/DV.01.18/2026`;
+        showToast("TTE Selesai", "Sistem lokal menyetujui pengajuan.", "fa-check");
+        renderMainDataTable();
+      }
+    }
+
+    function openRejectModal(id) {
+      appState.rejectTargetId = id;
+      document.getElementById('reject-modal').classList.remove('hide');
+    }
+
+    function closeRejectModal() {
+      appState.rejectTargetId = null;
+      document.getElementById('reject-reason').value = '';
+      document.getElementById('reject-modal').classList.add('hide');
+    }
+
+    function submitRejectForm() {
+      const alasan = document.getElementById('reject-reason').value.trim();
+      if(!alasan) {
+        alert("Wajib menyertakan alasan penolakan.");
+        return;
+      }
+      showToast("Menolak", "Mengirim respon penolakan ke mahasiswa...", "fa-spinner fa-spin");
+
+      if (typeof google !== 'undefined' && google.script && google.script.run) {
+        google.script.run
+          .withSuccessHandler(res => {
+            closeRejectModal();
+            showToast("Ditolak", "Pengajuan berhasil dibatalkan.", "fa-check");
+            renderMainDataTable();
+          })
+          .withFailureHandler(err => { rejectMockSurat(); })
+          .tolakPengajuan(appState.rejectTargetId, alasan, appState.user.name);
+      } else {
+        rejectMockSurat();
+      }
+    }
+
+    function rejectMockSurat() {
+      const idx = appState.db.findIndex(d => d.id === appState.rejectTargetId);
+      if(idx > -1) {
+        appState.db[idx].status = "Ditolak";
+        closeRejectModal();
+        showToast("Ditolak Lokal", "Sistem demonstrasi menolak berkas.", "fa-check");
+        renderMainDataTable();
+      }
+    }
+
+    let activeDocPDF = null;
+    function openPreviewModal(id) {
+      const doc = appState.db.find(d => d.id === id);
+      if(!doc) return;
+      activeDocPDF = doc;
+
+      document.getElementById('doc-view-no').innerText = "Menunggu Persetujuan...";
+      document.getElementById('doc-view-mhs-nama').innerText = doc.nama;
+      document.getElementById('doc-view-mhs-nim').innerText = doc.nim;
+      document.getElementById('doc-view-mhs-prodi').innerText = doc.prodi + " / " + doc.semester;
+      document.getElementById('doc-view-tahun-akad').innerText = doc.tahun_akademik;
+      
+      document.getElementById('doc-view-lama-studi').innerText = doc.lama_studi || "3 Tahun";
+      
+      document.getElementById('doc-view-ortu-nama').innerText = doc.ortu_nama;
+      document.getElementById('doc-view-ortu-nip').innerText = doc.ortu_nip;
+      document.getElementById('doc-view-ortu-pangkat').innerText = doc.ortu_pangkat;
+      document.getElementById('doc-view-ortu-instansi').innerText = doc.ortu_instansi;
+      document.getElementById('doc-view-keperluan').innerText = doc.tujuan;
+
+      const dObj = new Date(); // Pakai tanggal hari ini untuk pratinjau form
+      document.getElementById('doc-view-tgl-terbit').innerText = !isNaN(dObj) ? dObj.toLocaleDateString('id-ID', { year: 'numeric', month: 'long', day: 'numeric' }) : doc.tanggal;
+
+      const qrBox = document.getElementById('qrcode-box');
+      qrBox.innerHTML = '';
+      
+      document.getElementById('pdf-modal').classList.remove('hide');
+    }
+
+    function closeModal() {
+      document.getElementById('pdf-modal').classList.add('hide');
+    }
+
+    // Karena file PDF kini digenerate & diunduh langsung dari server (Drive) dengan format Doc yang rapih, 
+    // tombol PDF klien ini bisa diabaikan/dikosongkan, namun tetap ada untuk fallback jika backend mati.
+    function doDownloadPDFClient() {
+      showToast("Info", "Pencetakan mandiri dinonaktifkan. Silakan tekan tombol 'Lihat PDF' pada tabel utama untuk mengunduh berkas resmi.", "fa-info-circle");
+      closeModal();
+    }
+
+    function fetchDatabaseMetrics() {
+      const tot = appState.db.length;
+      const pend = appState.db.filter(d => d.status === "Menunggu Verifikasi").length;
+      const done = appState.db.filter(d => d.status === "Selesai").length;
+      const rej = appState.db.filter(d => d.status === "Ditolak").length;
+
+      const elTot = document.getElementById('stat-total');
+      const elPend = document.getElementById('stat-pending');
+      const elDone = document.getElementById('stat-done');
+      const elRej = document.getElementById('stat-rejected');
+
+      if(elTot) elTot.innerText = tot;
+      if(elPend) elPend.innerText = pend;
+      if(elDone) elDone.innerText = done;
+      if(elRej) elRej.innerText = rej;
+    }
+
+    function handleFilterTable(input) {
+      const query = input.value.toLowerCase();
+      const rows = document.querySelectorAll('#main-table-data tbody tr');
+      
+      rows.forEach(row => {
+        const content = row.innerText.toLowerCase();
+        if(content.includes(query)) {
+          row.style.display = '';
+        } else {
+          row.style.display = 'none';
+        }
+      });
+    }
+
+    function showToast(title, desc, iconClass) {
+      const toast = document.getElementById('app-toast');
+      document.getElementById('toast-title').innerText = title;
+      document.getElementById('toast-desc').innerText = desc;
+      
+      const iconBox = document.getElementById('toast-icon-box');
+      iconBox.innerHTML = `<i class="fas ${iconClass}"></i>`;
+
+      toast.classList.remove('hide');
+      setTimeout(() => { toast.classList.add('hide'); }, 4000);
+    }
+  </script>
+</body>
+</html>
