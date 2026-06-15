@@ -50,12 +50,6 @@
             <div><p class="font-bold text-sm text-slate-700">Admin Akademik</p><p class="text-[10px] text-slate-400">Verifikator Antrean dan TTE Surat</p></div>
           </div>
         </button>
-        <!--<button onclick="bukaFormKredensial('pimpinan')" class="w-full flex items-center justify-between p-4 bg-slate-50 hover:bg-purple-50 border border-slate-200 rounded-xl text-left transition group">
-          <div class="flex items-center gap-3.5">
-            <div class="w-10 h-10 rounded-lg bg-purple-100 text-purple-600 flex items-center justify-center text-lg"><i class="fas fa-user-tie"></i></div>
-            <div><p class="font-bold text-sm text-slate-700">Wakil Direktur I</p><p class="text-[10px] text-slate-400">Otorisasi Surat</p></div>
-          </div>
-        </button>-->
       </div>
 
       <div id="credential-form-section" class="hide space-y-4 text-left border border-slate-100 p-5 rounded-2xl bg-slate-50/50">
@@ -86,14 +80,21 @@
     </div>
   </div>
 
-  <div id="app-screen" class="hide flex h-screen overflow-hidden">
-    <aside class="w-64 bg-poltera-dark text-slate-200 flex flex-col z-20 shadow-2xl border-r border-slate-800">
+  <div id="app-screen" class="hide flex h-screen overflow-hidden relative">
+    
+    <div id="sidebar-overlay" onclick="toggleSidebar()" class="fixed inset-0 bg-slate-900/60 z-40 hidden md:hidden transition-opacity opacity-0 backdrop-blur-sm"></div>
+
+    <aside id="main-sidebar" class="w-64 bg-poltera-dark text-slate-200 flex flex-col z-50 shadow-2xl border-r border-slate-800 absolute md:relative inset-y-0 left-0 transform -translate-x-full md:translate-x-0 transition-transform duration-300 ease-in-out">
+      
+      <button onclick="toggleSidebar()" class="md:hidden absolute top-4 right-4 text-slate-400 hover:text-white w-8 h-8 bg-slate-800 rounded-lg flex items-center justify-center">
+        <i class="fas fa-times"></i>
+      </button>
+
       <div class="h-16 flex items-center justify-center gap-3 border-b border-slate-800 bg-slate-900/50">
-       
         <div class="w-10 h-10 bg-gradient-to-tr from-poltera-accent to-amber-300 rounded flex items-center justify-center text-poltera-dark shadow">
-  <img src="./logo-poltera.png" alt="Logo Poltera" class="w-8 h-8 object-contain">
-</div>
-      <span class="font-extrabold text-white tracking-widest uppercase text-lg">Poltera</span>
+          <img src="./logo-poltera.png" alt="Logo Poltera" class="w-8 h-8 object-contain">
+        </div>
+        <span class="font-extrabold text-white tracking-widest uppercase text-lg">Poltera</span>
       </div>
       <div class="p-4 border-b border-slate-800 bg-slate-950/40 flex items-center gap-3">
         <div class="w-10 h-10 rounded-full bg-poltera-navy text-white flex items-center justify-center font-bold" id="nav-initial">U</div>
@@ -104,62 +105,68 @@
       </div>
       <nav class="flex-1 p-4 space-y-1.5 overflow-y-auto" id="nav-menu"></nav>
       <div class="p-4 border-t border-slate-800">
-        <button onclick="handleLogout()" class="w-full py-2.5 bg-red-600/10 hover:bg-red-600 text-red-400 hover:text-white rounded-xl text-xs font-bold transition flex justify-center gap-2">
+        <button onclick="handleLogout()" class="w-full py-2.5 bg-red-600/10 hover:bg-red-600 text-red-400 hover:text-white rounded-xl text-xs font-bold transition flex justify-center gap-2 items-center">
           <i class="fas fa-sign-out-alt"></i> Keluar Aplikasi
         </button>
       </div>
     </aside>
 
-    <main class="flex-1 flex flex-col h-screen overflow-hidden">
-      <header class="bg-white border-b px-6 py-4 flex justify-between items-center z-10 shadow-sm">
-        <div>
-          <h3 class="text-lg font-bold text-slate-800" id="header-title">Dashboard</h3>
-          <p class="text-xs text-slate-400" id="header-desc">Selamat datang di portal e-surat</p>
-        </div>
-        <div class="flex items-center gap-4">
-          <button onclick="window.open('https://drive.google.com/file/d/1rGxNVwCUmkZ1WmKe3n-ym3QBjlROcBgl/view?usp=drive_link', '_blank')" class="hidden md:flex bg-white border border-slate-200 text-slate-600 px-3 py-1.5 rounded-lg text-xs font-bold shadow-sm">
-            <i class="fas fa-file-excel text-emerald-600"></i> Contoh Surat
+    <main class="flex-1 flex flex-col h-screen overflow-hidden w-full relative">
+      <header class="bg-white border-b px-4 md:px-6 py-4 flex justify-between items-center z-10 shadow-sm">
+        
+        <div class="flex items-center gap-3">
+          <button onclick="toggleSidebar()" class="md:hidden text-slate-500 hover:text-poltera-navy w-10 h-10 rounded-xl bg-slate-50 border border-slate-200 flex items-center justify-center transition">
+            <i class="fas fa-bars text-lg"></i>
           </button>
-          <span class="text-xs font-semibold text-slate-500 bg-slate-100 px-3 py-1.5 rounded-lg" id="header-date">Tanggal</span>
+          <div>
+            <h3 class="text-base md:text-lg font-bold text-slate-800" id="header-title">Dashboard</h3>
+            <p class="text-[10px] md:text-xs text-slate-400 hidden sm:block" id="header-desc">Selamat datang di portal e-surat</p>
+          </div>
+        </div>
+
+        <div class="flex items-center gap-3">
+          <button onclick="window.open('https://drive.google.com/file/d/1rGxNVwCUmkZ1WmKe3n-ym3QBjlROcBgl/view?usp=drive_link', '_blank')" class="hidden md:flex bg-white border border-slate-200 text-slate-600 px-3 py-1.5 rounded-lg text-xs font-bold shadow-sm">
+            <i class="fas fa-file-word text-emerald-600"></i> Contoh Surat
+          </button>
+          <span class="text-[10px] md:text-xs font-semibold text-slate-500 bg-slate-100 px-3 py-1.5 rounded-lg" id="header-date">Tanggal</span>
         </div>
       </header>
-      <div class="flex-1 overflow-y-auto p-6 bg-slate-50" id="view-wrapper"></div>
+      <div class="flex-1 overflow-y-auto p-4 md:p-6 bg-slate-50" id="view-wrapper"></div>
     </main>
   </div>
-
   <template id="view-dashboard">
     <div class="space-y-6">
-      <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <div class="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm flex items-center gap-4">
-          <div class="w-12 h-12 rounded-xl bg-blue-50 text-poltera-navy flex items-center justify-center text-xl shadow-inner"><i class="fas fa-file-invoice"></i></div>
-          <div><p class="text-xs font-semibold text-slate-400">Total Pengajuan</p><p class="text-2xl font-bold text-slate-800" id="stat-total">0</p></div>
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
+        <div class="bg-white p-4 md:p-5 rounded-2xl border border-slate-100 shadow-sm flex flex-col md:flex-row items-start md:items-center gap-3 md:gap-4">
+          <div class="w-10 h-10 md:w-12 md:h-12 rounded-xl bg-blue-50 text-poltera-navy flex items-center justify-center text-lg md:text-xl shadow-inner"><i class="fas fa-file-invoice"></i></div>
+          <div><p class="text-[10px] md:text-xs font-semibold text-slate-400">Total Pengajuan</p><p class="text-xl md:text-2xl font-bold text-slate-800" id="stat-total">0</p></div>
         </div>
-        <div class="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm flex items-center gap-4">
-          <div class="w-12 h-12 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center text-xl shadow-inner"><i class="fas fa-spinner fa-spin"></i></div>
-          <div><p class="text-xs font-semibold text-slate-400">Menunggu Verifikasi</p><p class="text-2xl font-bold text-slate-800" id="stat-pending">0</p></div>
+        <div class="bg-white p-4 md:p-5 rounded-2xl border border-slate-100 shadow-sm flex flex-col md:flex-row items-start md:items-center gap-3 md:gap-4">
+          <div class="w-10 h-10 md:w-12 md:h-12 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center text-lg md:text-xl shadow-inner"><i class="fas fa-spinner fa-spin"></i></div>
+          <div><p class="text-[10px] md:text-xs font-semibold text-slate-400">Menunggu Verifikasi</p><p class="text-xl md:text-2xl font-bold text-slate-800" id="stat-pending">0</p></div>
         </div>
-        <div class="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm flex items-center gap-4">
-          <div class="w-12 h-12 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center text-xl shadow-inner"><i class="fas fa-check-circle"></i></div>
-          <div><p class="text-xs font-semibold text-slate-400">Disetujui / Selesai</p><p class="text-2xl font-bold text-slate-800" id="stat-done">0</p></div>
+        <div class="bg-white p-4 md:p-5 rounded-2xl border border-slate-100 shadow-sm flex flex-col md:flex-row items-start md:items-center gap-3 md:gap-4">
+          <div class="w-10 h-10 md:w-12 md:h-12 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center text-lg md:text-xl shadow-inner"><i class="fas fa-check-circle"></i></div>
+          <div><p class="text-[10px] md:text-xs font-semibold text-slate-400">Disetujui / Selesai</p><p class="text-xl md:text-2xl font-bold text-slate-800" id="stat-done">0</p></div>
         </div>
-        <div class="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm flex items-center gap-4">
-          <div class="w-12 h-12 rounded-xl bg-rose-50 text-rose-600 flex items-center justify-center text-xl shadow-inner"><i class="fas fa-ban"></i></div>
-          <div><p class="text-xs font-semibold text-slate-400">Pengajuan Ditolak</p><p class="text-2xl font-bold text-slate-800" id="stat-rejected">0</p></div>
+        <div class="bg-white p-4 md:p-5 rounded-2xl border border-slate-100 shadow-sm flex flex-col md:flex-row items-start md:items-center gap-3 md:gap-4">
+          <div class="w-10 h-10 md:w-12 md:h-12 rounded-xl bg-rose-50 text-rose-600 flex items-center justify-center text-lg md:text-xl shadow-inner"><i class="fas fa-ban"></i></div>
+          <div><p class="text-[10px] md:text-xs font-semibold text-slate-400">Pengajuan Ditolak</p><p class="text-xl md:text-2xl font-bold text-slate-800" id="stat-rejected">0</p></div>
         </div>
       </div>
-      <div class="bg-gradient-to-r from-poltera-navy to-slate-900 text-white rounded-2xl p-6 shadow-xl flex flex-col md:flex-row justify-between items-center gap-6">
+      <div class="bg-gradient-to-r from-poltera-navy to-slate-900 text-white rounded-2xl p-5 md:p-6 shadow-xl flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
         <div class="space-y-1.5">
-          <h4 class="text-lg font-bold">Surat Keterangan Aktif Kuliah Digital</h4>
-          <p class="text-xs text-slate-300 max-w-xl">Menggunakan tanda tangan elektronik berbasis QR Code yang terenkripsi aman.</p>
+          <h4 class="text-base md:text-lg font-bold">Surat Keterangan Aktif Kuliah Digital</h4>
+          <p class="text-[10px] md:text-xs text-slate-300 max-w-xl">Menggunakan tanda tangan elektronik berbasis QR Code yang terenkripsi aman.</p>
         </div>
-        <button onclick="changeView('riwayat')" class="bg-poltera-accent px-5 py-3 rounded-xl font-bold text-xs"><i class="fas fa-list mr-1"></i> Tinjau Antrean</button>
+        <button onclick="changeView('riwayat')" class="bg-poltera-accent px-5 py-3 rounded-xl font-bold text-xs w-full md:w-auto"><i class="fas fa-list mr-1"></i> Tinjau Antrean</button>
       </div>
     </div>
   </template>
 
   <template id="view-pengajuan">
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-      <div class="lg:col-span-2 bg-white rounded-2xl border border-slate-100 p-6 shadow-sm space-y-6">
+      <div class="lg:col-span-2 bg-white rounded-2xl border border-slate-100 p-5 md:p-6 shadow-sm space-y-6">
         <h4 class="font-bold text-base border-b pb-3">Form Permohonan Surat Pernyataan</h4>
         <form id="form-permohonan" class="space-y-6" onsubmit="doSubmitPermohonan(event)">
           <div class="space-y-4">
@@ -167,69 +174,77 @@
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div><label class="block text-xs font-semibold text-slate-400 mb-1">Nama Lengkap</label><input type="text" id="mhs-nama" readonly class="w-full bg-slate-100 border p-3 text-xs rounded-xl"></div>
               <div><label class="block text-xs font-semibold text-slate-400 mb-1">NIM</label><input type="text" id="mhs-nim" readonly class="w-full bg-slate-100 border p-3 text-xs rounded-xl"></div>
-              <div class="col-span-2 md:col-span-1"><label class="block text-xs font-semibold text-slate-400 mb-1">Prodi</label><input type="text" id="mhs-prodi" readonly class="w-full bg-slate-100 border p-3 text-xs rounded-xl"></div>
-              <div class="grid grid-cols-3 gap-2 col-span-2 md:col-span-1">
-                <div><label class="block text-[11px] font-semibold text-slate-400 mb-1">Semester</label><input type="text" id="mhs-semester" readonly class="w-full bg-slate-100 border p-3 text-xs rounded-xl text-center"></div>
-                <div><label class="block text-[11px] font-semibold text-slate-400 mb-1">Thn Akademik</label><input type="text" id="mhs-tahun-akad" readonly class="w-full bg-slate-100 border p-3 text-xs rounded-xl text-center"></div>
-                <div><label class="block text-[11px] font-semibold text-slate-400 mb-1">Lama Studi</label><input type="text" id="mhs-lama-studi" readonly class="w-full bg-slate-100 border p-3 text-xs rounded-xl text-center"></div>
+              <div class="col-span-1 md:col-span-1"><label class="block text-xs font-semibold text-slate-400 mb-1">Prodi</label><input type="text" id="mhs-prodi" readonly class="w-full bg-slate-100 border p-3 text-xs rounded-xl"></div>
+              <div class="grid grid-cols-3 gap-2 col-span-1 md:col-span-1">
+                <div><label class="block text-[11px] font-semibold text-slate-400 mb-1 truncate">Semester</label><input type="text" id="mhs-semester" readonly class="w-full bg-slate-100 border p-3 text-xs rounded-xl text-center px-1"></div>
+                <div><label class="block text-[11px] font-semibold text-slate-400 mb-1 truncate">Thn Akademik</label><input type="text" id="mhs-tahun-akad" readonly class="w-full bg-slate-100 border p-3 text-xs rounded-xl text-center px-1"></div>
+                <div><label class="block text-[11px] font-semibold text-slate-400 mb-1 truncate">Lama Studi</label><input type="text" id="mhs-lama-studi" readonly class="w-full bg-slate-100 border p-3 text-xs rounded-xl text-center px-1"></div>
               </div>
             </div>
           </div>
           <div class="space-y-4">
             <h5 class="text-xs font-bold text-poltera-navy uppercase border-b pb-1 tracking-wider">B. Data Orang Tua / Wali</h5>
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div><label class="block text-xs font-semibold text-slate-500 mb-1">Nama Ortu/Wali *</label><input type="text" id="ortu-nama" required placeholder="Contoh: Slamet Abadi" required class="w-full border p-3 text-xs rounded-xl"></div>
-              <div><label class="block text-xs font-semibold text-slate-500 mb-1">NIP Wali (- jika tidak ada)</label><input type="text" id="ortu-nip" required placeholder="Contoh: 19920622019061001" class="w-full border p-3 text-xs rounded-xl"></div>
-              <div><label class="block text-xs font-semibold text-slate-500 mb-1">Pangkat/Golongan</label><input type="text" id="ortu-pangkat" required placeholder="Penata /III/b" class="w-full border p-3 text-xs rounded-xl"></div>
-              <div><label class="block text-xs font-semibold text-slate-500 mb-1">Instansi / Unit Kerja *</label><input type="text" id="ortu-instansi" required placeholder="Contoh: Dinas Pendidikan Sampang" required class="w-full border p-3 text-xs rounded-xl"></div>
+              <div><label class="block text-xs font-semibold text-slate-500 mb-1">Nama Ortu/Wali *</label><input type="text" id="ortu-nama" required placeholder="Contoh: Slamet Abadi" class="w-full border p-3 text-xs rounded-xl focus:ring-1 outline-none"></div>
+              <div><label class="block text-xs font-semibold text-slate-500 mb-1">NIP Wali (- jika tidak ada)</label><input type="text" id="ortu-nip" required placeholder="Contoh: 19920622019061001" class="w-full border p-3 text-xs rounded-xl focus:ring-1 outline-none"></div>
+              <div><label class="block text-xs font-semibold text-slate-500 mb-1">Pangkat/Golongan</label><input type="text" id="ortu-pangkat" required placeholder="Penata /III/b" class="w-full border p-3 text-xs rounded-xl focus:ring-1 outline-none"></div>
+              <div><label class="block text-xs font-semibold text-slate-500 mb-1">Instansi / Unit Kerja *</label><input type="text" id="ortu-instansi" required placeholder="Contoh: Dinas Pendidikan Sampang" class="w-full border p-3 text-xs rounded-xl focus:ring-1 outline-none"></div>
             </div>
           </div>
           <div class="grid grid-cols-1 md:grid-cols-2 gap-4 border-t pt-4">
-            <div><label class="block text-xs font-semibold text-slate-500 mb-1">No WhatsApp Aktif *</label><input type="text" id="mhs-hp" required placeholder="Contoh: 628123456789" required class="w-full border p-3 text-xs rounded-xl"></div>
-            <div><label class="block text-xs font-semibold text-slate-500 mb-1">Keperluan *</label><select id="mhs-keperluan" required class="w-full border p-3 text-xs rounded-xl"></select></div>
+            <div><label class="block text-xs font-semibold text-slate-500 mb-1">No WhatsApp Aktif *</label><input type="text" id="mhs-hp" required placeholder="Contoh: 628123456789" class="w-full border p-3 text-xs rounded-xl focus:ring-1 outline-none"></div>
+            <div><label class="block text-xs font-semibold text-slate-500 mb-1">Keperluan *</label><select id="mhs-keperluan" required class="w-full border p-3 text-xs rounded-xl focus:ring-1 outline-none bg-white"></select></div>
           </div>
-          <div class="text-right border-t pt-4"><button type="submit" class="bg-emerald-600 text-white px-6 py-3 rounded-xl font-bold text-xs"><i class="fas fa-paper-plane mr-1.5"></i> Kirim Pengajuan</button></div>
+          <div class="text-right border-t pt-4"><button type="submit" class="w-full md:w-auto bg-emerald-600 text-white px-6 py-3 rounded-xl font-bold text-xs"><i class="fas fa-paper-plane mr-1.5"></i> Kirim Pengajuan</button></div>
         </form>
       </div>
     </div>
   </template>
 
   <template id="view-riwayat">
-    <div class="bg-white rounded-2xl border shadow-sm">
-      <div class="p-5 border-b flex justify-between items-center bg-slate-50">
-        <h4 class="font-bold text-base">Daftar Pengajuan Surat</h4>
-        <input type="text" id="cari-input" onkeyup="handleFilterTable(this)" placeholder="Cari data..." class="border rounded-xl px-4 py-2 text-xs">
+    <div class="bg-white rounded-2xl border shadow-sm flex flex-col h-full max-h-[85vh]">
+      <div class="p-4 md:p-5 border-b flex flex-col md:flex-row justify-between items-start md:items-center gap-3 bg-slate-50">
+        <h4 class="font-bold text-sm md:text-base">Daftar Pengajuan Surat</h4>
+        <div class="relative w-full md:w-64">
+            <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-slate-400"><i class="fas fa-search text-xs"></i></span>
+            <input type="text" id="cari-input" onkeyup="handleFilterTable(this)" placeholder="Cari data..." class="w-full border rounded-xl pl-9 pr-4 py-2 text-xs focus:ring-1 outline-none">
+        </div>
       </div>
-      <div class="overflow-x-auto">
-        <table class="w-full text-left border-collapse" id="main-table-data">
-          <thead><tr class="bg-slate-100 text-slate-500 text-[10px] font-extrabold uppercase border-b"><th class="p-4">Tanggal</th><th class="p-4">No Surat</th><th class="p-4">Mahasiswa / NIM</th><th class="p-4">Keperluan</th><th class="p-4 text-center">Status</th><th class="p-4 text-center">Tindakan</th></tr></thead>
+      <div class="overflow-x-auto flex-1">
+        <table class="w-full text-left border-collapse min-w-[700px]" id="main-table-data">
+          <thead><tr class="bg-slate-100 text-slate-500 text-[10px] font-extrabold uppercase border-b sticky top-0 z-10"><th class="p-3 md:p-4">Tanggal</th><th class="p-3 md:p-4">No Surat</th><th class="p-3 md:p-4">Mahasiswa / NIM</th><th class="p-3 md:p-4">Keperluan</th><th class="p-3 md:p-4 text-center">Status</th><th class="p-3 md:p-4 text-center">Tindakan</th></tr></thead>
           <tbody class="text-xs divide-y divide-slate-100" id="table-body-target"></tbody>
         </table>
       </div>
     </div>
   </template>
 
-  <div id="pdf-modal" class="fixed inset-0 bg-slate-900/60 z-50 flex items-center justify-center hide p-4">
-    <div class="bg-white rounded-2xl w-full max-w-4xl max-h-[92vh] flex flex-col">
-      <div class="p-4 border-b flex justify-between items-center bg-slate-50">
-        <h4 class="font-bold text-sm">Pratinjau Data Pengajuan</h4>
+  <div id="pdf-modal" class="fixed inset-0 bg-slate-900/60 z-50 flex items-center justify-center hide p-4 transition-all duration-200 overflow-y-auto">
+    <div class="bg-white rounded-2xl w-full max-w-4xl max-h-[95vh] flex flex-col overflow-hidden my-auto">
+      <div class="p-4 border-b flex justify-between items-center bg-slate-50 shrink-0">
+        <div>
+            <h4 class="font-bold text-sm">Pratinjau Data Pengajuan</h4>
+            <p class="text-[9px] md:text-[10px] text-slate-400">Tampilan pengecekan kesesuaian data pengajuan mahasiswa</p>
+        </div>
         <button onclick="closeModal()" class="text-slate-400 hover:text-rose-600"><i class="fas fa-times text-lg"></i></button>
       </div>
-      <div class="p-6 overflow-y-auto flex-1 bg-slate-500/10 flex justify-center"><div class="kertas-dokumen" id="kertas-pdf-preview"></div></div>
-      <div class="p-4 border-t flex justify-end"><button onclick="closeModal()" class="px-5 py-2.5 bg-slate-800 text-white rounded-xl text-xs font-bold">Tutup Pengecekan</button></div>
+      <div class="p-4 md:p-6 overflow-y-auto flex-1 bg-slate-500/10 flex justify-center items-start">
+        <div class="kertas-dokumen transform scale-75 origin-top sm:scale-100" id="kertas-pdf-preview" style="margin-bottom: -150px;"></div>
+      </div>
+      <div class="p-4 border-t flex justify-end shrink-0"><button onclick="closeModal()" class="px-5 py-2.5 bg-slate-800 text-white rounded-xl text-xs font-bold w-full md:w-auto">Tutup Pengecekan</button></div>
     </div>
   </div>
 
-  <div id="reject-modal" class="fixed inset-0 bg-slate-900/60 z-50 flex items-center justify-center hide p-4">
-    <div class="bg-white rounded-2xl w-full max-w-md">
+  <div id="reject-modal" class="fixed inset-0 bg-slate-900/60 z-50 flex items-center justify-center hide p-4 backdrop-blur-sm">
+    <div class="bg-white rounded-2xl w-full max-w-md shadow-2xl">
       <div class="p-5 border-b"><h4 class="font-bold text-sm">Alasan Penolakan</h4></div>
-      <div class="p-5"><textarea id="reject-reason" rows="3" class="w-full border rounded-xl p-3 text-xs" placeholder="Masukkan alasan penolakan..."></textarea></div>
-      <div class="p-4 border-t flex justify-end gap-2"><button onclick="closeRejectModal()" class="px-4 py-2 border rounded-xl text-xs font-bold">Batal</button><button onclick="submitRejectForm()" class="px-4 py-2 bg-rose-600 text-white rounded-xl text-xs font-bold">Tolak Berkas</button></div>
+      <div class="p-5"><textarea id="reject-reason" rows="3" class="w-full border rounded-xl p-3 text-xs focus:ring-1 outline-none" placeholder="Masukkan alasan penolakan..."></textarea></div>
+      <div class="p-4 border-t flex justify-end gap-2"><button onclick="closeRejectModal()" class="px-4 py-2 border rounded-xl text-xs font-bold bg-white w-full md:w-auto">Batal</button><button onclick="submitRejectForm()" class="px-4 py-2 bg-rose-600 text-white rounded-xl text-xs font-bold w-full md:w-auto">Tolak Berkas</button></div>
     </div>
   </div>
 
-  <div id="app-toast" class="fixed bottom-5 right-5 bg-white border-l-4 border-slate-900 shadow-2xl rounded-xl px-5 py-4 hide flex items-center gap-3.5 z-50">
-    <div class="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-sm" id="toast-icon-box"></div>
+  <div id="app-toast" class="fixed bottom-5 right-5 left-5 md:left-auto bg-white border-l-4 border-slate-900 shadow-2xl rounded-xl px-5 py-4 hide flex items-center gap-3.5 z-50 transition-all">
+    <div class="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-sm shrink-0" id="toast-icon-box"></div>
     <div><h5 class="font-bold text-xs" id="toast-title">Notifikasi</h5><p class="text-[10px] text-slate-500" id="toast-desc">Memproses...</p></div>
   </div>
 
@@ -241,6 +256,22 @@
     // -------------------------------------------------------------
 
     let appState = { role: null, user: null, currentView: 'dashboard', db: [], selectedMhs: null, rejectTargetId: null };
+
+    // FUNGSI TOGGLE SIDEBAR MOBILE
+    function toggleSidebar() {
+      const sidebar = document.getElementById('main-sidebar');
+      const overlay = document.getElementById('sidebar-overlay');
+      
+      if (sidebar.classList.contains('-translate-x-full')) {
+        sidebar.classList.remove('-translate-x-full');
+        overlay.classList.remove('hidden');
+        setTimeout(() => overlay.classList.remove('opacity-0'), 10);
+      } else {
+        sidebar.classList.add('-translate-x-full');
+        overlay.classList.add('opacity-0');
+        setTimeout(() => overlay.classList.add('hidden'), 300);
+      }
+    }
 
     // HELPER UNTUK MENGHUBUNGI GOOGLE APPS SCRIPT
     async function apiGet(action, params = {}) {
@@ -316,12 +347,12 @@
     function handleLogout() { appState.role = null; appState.user = null; document.getElementById('app-screen').classList.add('hide'); document.getElementById('login-screen').classList.remove('hide'); kembaliKePilihanRole(); }
 
     function buildSidebarNavigation() {
-      let nav = `<button onclick="changeView('dashboard')" class="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-left text-xs font-bold text-slate-400 hover:bg-slate-800 hover:text-white"><i class="fas fa-home text-sm"></i> Dashboard</button>`;
+      let nav = `<button onclick="changeView('dashboard')" class="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-left text-xs font-bold text-slate-400 hover:bg-slate-800 hover:text-white transition"><i class="fas fa-home text-sm w-4"></i> Dashboard</button>`;
       if(appState.role === 'mahasiswa') {
-        nav += `<button onclick="changeView('pengajuan')" class="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-left text-xs font-bold text-slate-400 hover:bg-slate-800 hover:text-white"><i class="fas fa-edit text-sm"></i> Ajukan Surat</button>
-                <button onclick="changeView('riwayat')" class="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-left text-xs font-bold text-slate-400 hover:bg-slate-800 hover:text-white"><i class="fas fa-history text-sm"></i> Riwayat</button>`;
+        nav += `<button onclick="changeView('pengajuan')" class="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-left text-xs font-bold text-slate-400 hover:bg-slate-800 hover:text-white transition"><i class="fas fa-edit text-sm w-4"></i> Ajukan Surat</button>
+                <button onclick="changeView('riwayat')" class="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-left text-xs font-bold text-slate-400 hover:bg-slate-800 hover:text-white transition"><i class="fas fa-history text-sm w-4"></i> Riwayat</button>`;
       } else {
-        nav += `<button onclick="changeView('riwayat')" class="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-left text-xs font-bold text-slate-400 hover:bg-slate-800 hover:text-white"><i class="fas fa-tasks text-sm"></i> Antrean <span id="badge-nav-pending" class="bg-amber-500 text-white px-2 rounded-full ml-auto">0</span></button>`;
+        nav += `<button onclick="changeView('riwayat')" class="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-left text-xs font-bold text-slate-400 hover:bg-slate-800 hover:text-white transition"><i class="fas fa-tasks text-sm w-4"></i> Antrean <span id="badge-nav-pending" class="bg-amber-500 text-white px-2 rounded-full ml-auto">0</span></button>`;
       }
       document.getElementById('nav-menu').innerHTML = nav;
     }
@@ -330,6 +361,11 @@
       appState.currentView = viewName;
       document.getElementById('view-wrapper').innerHTML = '';
       document.getElementById('view-wrapper').appendChild(document.getElementById(`view-${viewName}`).content.cloneNode(true));
+
+      if(window.innerWidth < 768) {
+        const sidebar = document.getElementById('main-sidebar');
+        if (!sidebar.classList.contains('-translate-x-full')) toggleSidebar();
+      }
 
       if(viewName === 'dashboard') { document.getElementById('header-title').innerText = "Dashboard Statistik"; fetchDatabaseMetrics(); } 
       else if(viewName === 'pengajuan') {
@@ -379,13 +415,14 @@
       
       let markup = '';
       data.forEach(d => {
-        let badge = d.status === "Selesai" ? `<span class="text-emerald-600 font-bold">Disetujui</span>` : d.status === "Ditolak" ? `<span class="text-rose-600 font-bold">Ditolak</span>` : `<span class="text-amber-600 font-bold">Menunggu</span>`;
+        let badge = d.status === "Selesai" ? `<span class="px-2.5 py-1 bg-emerald-50 text-emerald-600 border border-emerald-100 rounded-full font-bold tracking-wide flex items-center gap-1 w-fit"><span class="w-1.5 h-1.5 rounded-full bg-emerald-500 hidden md:block"></span> Disetujui</span>` : d.status === "Ditolak" ? `<span class="px-2.5 py-1 bg-rose-50 text-rose-600 border border-rose-100 rounded-full font-bold tracking-wide flex items-center gap-1 w-fit"><span class="w-1.5 h-1.5 rounded-full bg-rose-500 hidden md:block"></span> Ditolak</span>` : `<span class="px-2.5 py-1 bg-amber-50 text-amber-600 border border-amber-100 rounded-full font-bold tracking-wide flex items-center gap-1 w-fit animate-pulse"><span class="w-1.5 h-1.5 rounded-full bg-amber-500 hidden md:block"></span> Menunggu</span>`;
         let actionBtn = '';
-        if(d.status === "Selesai") { actionBtn = `<button onclick="window.open('${d.link_pdf}', '_blank')" class="bg-rose-600 text-white px-3 py-1.5 rounded-lg text-[10px] font-bold">Lihat PDF</button>`; } 
+        if(d.status === "Selesai") { actionBtn = `<button onclick="window.open('${d.link_pdf}', '_blank')" class="bg-rose-600 hover:bg-rose-700 text-white px-3 py-1.5 rounded-lg text-[10px] md:text-xs font-bold transition flex items-center gap-1 w-full md:w-auto justify-center"><i class="fas fa-file-pdf"></i> PDF</button>`; } 
         else if(appState.role !== "mahasiswa" && d.status === "Menunggu Verifikasi") {
-          actionBtn = `<div class="flex gap-1 justify-center"><button onclick="openPreviewModal('${d.id}')" class="bg-slate-900 text-white px-2 py-1 rounded-lg text-[10px]">Cek</button><button onclick="doApproveSurat('${d.id}')" class="bg-emerald-600 text-white px-2 py-1 rounded-lg text-[10px]">ACC</button><button onclick="openRejectModal('${d.id}')" class="bg-rose-100 text-rose-600 px-2 py-1 rounded-lg text-[10px]">Tolak</button></div>`;
-        }
-        markup += `<tr class="border-b"><td class="p-4">${d.tanggal}</td><td class="p-4 font-mono text-xs">${d.no_surat}</td><td class="p-4 font-bold">${d.nama}<br><span class="font-normal text-xs text-slate-400">${d.nim}</span></td><td class="p-4 text-xs">${d.tujuan}</td><td class="p-4 text-center">${badge}</td><td class="p-4 text-center">${actionBtn}</td></tr>`;
+          actionBtn = `<div class="flex flex-row items-center gap-1 justify-start md:justify-center"><button onclick="openPreviewModal('${d.id}')" class="bg-slate-900 hover:bg-slate-800 text-white px-2 py-1.5 rounded text-[10px] font-bold shadow-sm"><i class="fas fa-eye md:mr-0.5"></i> <span class="hidden md:inline">Cek</span></button><button onclick="doApproveSurat('${d.id}')" class="bg-emerald-600 hover:bg-emerald-700 text-white px-2 py-1.5 rounded text-[10px] font-bold shadow-sm"><i class="fas fa-check md:mr-0.5"></i> <span class="hidden md:inline">Setujui</span></button><button onclick="openRejectModal('${d.id}')" class="bg-rose-100 hover:bg-rose-200 text-rose-600 px-2 py-1.5 rounded text-[10px] font-bold"><i class="fas fa-times md:mr-0.5"></i> <span class="hidden md:inline">Tolak</span></button></div>`;
+        } else { actionBtn = `<span class="text-[9px] md:text-[10px] text-slate-400 italic font-semibold">Sedang Diproses</span>`; }
+        const dateStr = d.tanggal.split(" ")[0] || d.tanggal;
+        markup += `<tr class="border-b border-slate-100 hover:bg-slate-50/50"><td class="p-3 md:p-4 text-slate-500 font-semibold whitespace-nowrap">${dateStr}</td><td class="p-3 md:p-4 font-mono text-[10px] md:text-xs font-bold">${d.no_surat}</td><td class="p-3 md:p-4"><div><p class="font-bold text-slate-800 text-xs md:text-sm">${d.nama}</p><p class="text-[9px] md:text-[10px] text-slate-400 font-mono">${d.nim}</p></div></td><td class="p-3 md:p-4 text-[10px] md:text-xs text-slate-500 max-w-[100px] md:max-w-[150px] truncate" title="${d.tujuan}">${d.tujuan}</td><td class="p-3 md:p-4">${badge}</td><td class="p-3 md:p-4">${actionBtn}</td></tr>`;
       });
       container.innerHTML = markup;
     }
@@ -418,6 +455,7 @@
 
     function openPreviewModal(id) {
       const doc = appState.db.find(d => d.id === id);
+      if(!doc) return;
       document.getElementById('kertas-pdf-preview').innerHTML = `<h3 class="font-bold text-center">PRATINJAU DATA MENTAH</h3><br><p><strong>Nama:</strong> ${doc.nama}<br><strong>NIM:</strong> ${doc.nim}<br><strong>Prodi:</strong> ${doc.prodi}<br><strong>Nama Ortu:</strong> ${doc.ortu_nama}<br><strong>Instansi Ortu:</strong> ${doc.ortu_instansi}</p>`;
       document.getElementById('pdf-modal').classList.remove('hide');
     }
