@@ -456,7 +456,7 @@
     function openPreviewModal(id) {
       const doc = appState.db.find(d => d.id === id);
       if(!doc) return;
-      document.getElementById('kertas-pdf-preview').innerHTML = `<h3 class="font-bold text-center">PRATINJAU DATA MENTAH</h3><br><p><strong>Nama:</strong> ${doc.nama}<br><strong>NIM:</strong> ${doc.nim}<br><strong>Prodi:</strong> ${doc.prodi}<br><strong>Nama Ortu:</strong> ${doc.ortu_nama}<br><strong>Instansi Ortu:</strong> ${doc.ortu_instansi}</p>`;
+      document.getElementById('kertas-pdf-preview').innerHTML = `<h3 class="font-bold text-center">PRATINJAU DATA MENTAH</h3><br><p><strong>Nama:</strong> ${doc.nama}<br><strong>NIM:</strong> ${doc.nim}<br><strong>Prodi:</strong> ${doc.prodi}<br><strong>Semester:</strong> ${doc.semester}<br><strong>Tahun Akademik:</strong> ${doc.tahun_akademik}<br><strong>Lama Studi:</strong> ${doc.lama_studi}<br><strong>Nama Ortu:</strong> ${doc.ortu_nama}<br><strong>Pangkat/Golongan/Ruang:</strong> ${doc.pangkat}<br><strong>Instansi Ortu:</strong> ${doc.ortu_instansi}<br><strong>Keperluan:</strong> ${doc.tujuan}</p>`;
       document.getElementById('pdf-modal').classList.remove('hide');
     }
     function closeModal() { document.getElementById('pdf-modal').classList.add('hide'); }
