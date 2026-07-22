@@ -3,12 +3,19 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <!-- SECURITY: Content Security Policy (CSP) -->
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.tailwindcss.com https://cdnjs.cloudflare.com https://www.google.com/recaptcha/ https://www.gstatic.com/recaptcha/; style-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com https://cdnjs.cloudflare.com; connect-src 'self' https://script.google.com https://*.googleusercontent.com https://www.google.com/recaptcha/; img-src 'self' data: blob: https://quickchart.io; frame-src 'self' https://www.google.com/recaptcha/;">
+
   <title>E-Surat BAAK POLTERA</title>
   
   <script src="https://cdn.tailwindcss.com"></script>
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
   
+  <!-- SECURITY: Google reCAPTCHA v3 -->
+  <script src="https://www.google.com/recaptcha/api.js?render=6LcktV0tAAAAACumzpws0R_UxCoVnTtgbbFisq4E"></script>
+
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap');
     body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #f1f5f9; }
@@ -253,9 +260,17 @@
     // -------------------------------------------------------------
     // WAJIB: GANTI DENGAN URL WEB APP GOOGLE APPS SCRIPT ANDA!!!
     const GAS_API_URL = "https://script.google.com/macros/s/AKfycbxVZMJChYV4NDU1ua57UzW-inURVOdMl8IUShZM52ycvXTM4PVY1GtciuMOLHrjI94LIA/exec"; 
+    const RECAPTCHA_SITE_KEY = "6LcktV0tAAAAACumzpws0R_UxCoVnTtgbbFisq4E"; // WAJIB DIISI
     // -------------------------------------------------------------
 
     let appState = { role: null, user: null, currentView: 'dashboard', db: [], selectedMhs: null, rejectTargetId: null };
+
+    // SECURITY: Mencegah Eksekusi Cross-Site Scripting (XSS)
+    function escapeHTML(str) {
+      return String(str).replace(/[&<>'"]/g, tag => ({
+        '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;'
+      }[tag]));
+    }
 
     // FUNGSI VALIDASI INPUT UNTUK MENCEGAH KARAKTER NON-ANGKA PADA MAHASISWA
     function validasiInput(input) {
@@ -329,29 +344,42 @@
     
     function kembaliKePilihanRole() { document.getElementById('credential-form-section').classList.add('hide'); document.getElementById('role-selection-section').classList.remove('hide'); }
 
-    // LOGIN MENGGUNAKAN FETCH KE BACKEND
+    // LOGIN MENGGUNAKAN FETCH KE BACKEND DENGAN RECAPTCHA PROTEKSI
     async function prosesVerifikasiKredensial(event) {
       event.preventDefault();
       const userVal = document.getElementById('auth-username').value.trim();
       const passVal = document.getElementById('auth-password').value;
 
-      showToast("Memproses...", "Menghubungi server POLTERA...", "fa-spinner fa-spin");
+      showToast("Memproses...", "Verifikasi Keamanan Server...", "fa-spinner fa-spin");
       
       try {
-        if (selectedAuthRole === 'mahasiswa') {
-          const res = await apiGet('cekNIM', {nim: userVal});
-          if (res.status === 'success') {
-            appState.role = 'mahasiswa'; appState.selectedMhs = { ...res.data, nim: userVal };
-            appState.user = { name: res.data.nama, nim: userVal, role: "Mahasiswa" };
-            masukKeSistem();
-          } else showToast("Ditolak", res.message, "fa-ban");
-        } else {
-          const res = await apiGet('loginAdmin', {username: userVal, password: passVal});
-          if (res.status === 'success' && res.role === selectedAuthRole) {
-            appState.role = res.role; appState.user = { name: res.name, role: res.role === 'admin' ? "Administrator" : "Wakil Direktur I" };
-            masukKeSistem();
-          } else showToast("Ditolak", res.message || "Akses tidak sesuai.", "fa-ban");
-        }
+        // SECURITY: Proteksi Login dengan Eksekusi reCAPTCHA Token
+        grecaptcha.ready(function() {
+          grecaptcha.execute(RECAPTCHA_SITE_KEY, {action: 'login'}).then(async function(token) {
+            
+            if (selectedAuthRole === 'mahasiswa') {
+              const res = await apiGet('cekNIM', {nim: userVal});
+              if (res.status === 'success') {
+                appState.role = 'mahasiswa'; appState.selectedMhs = { ...res.data, nim: userVal };
+                appState.user = { name: res.data.nama, nim: userVal, role: "Mahasiswa" };
+                masukKeSistem();
+              } else showToast("Ditolak", res.message, "fa-ban");
+            } else {
+              // SECURITY: Kirim token reCAPTCHA ke backend untuk divalidasi
+              const res = await apiPost('loginAdmin', {username: userVal, password: passVal, captcha: token});
+              if (res.status === 'success' && res.role === selectedAuthRole) {
+                appState.role = res.role; 
+                appState.user = { 
+                  name: res.name, 
+                  role: res.role === 'admin' ? "Administrator" : "Wakil Direktur I",
+                  username: userVal, // Simpan untuk otorisasi aksi POST aman
+                  password: passVal  // Simpan untuk otorisasi aksi POST aman
+                };
+                masukKeSistem();
+              } else showToast("Ditolak", res.message || "Akses tidak sesuai.", "fa-ban");
+            }
+          });
+        });
       } catch (e) { showToast("Sistem Offline", "Gagal terhubung ke database.", "fa-wifi"); }
     }
 
@@ -439,14 +467,53 @@
       data.forEach(d => {
         let badge = d.status === "Selesai" ? `<span class="px-2.5 py-1 bg-emerald-50 text-emerald-600 border border-emerald-100 rounded-full font-bold tracking-wide flex items-center gap-1 w-fit"><span class="w-1.5 h-1.5 rounded-full bg-emerald-500 hidden md:block"></span> Disetujui</span>` : d.status === "Ditolak" ? `<span class="px-2.5 py-1 bg-rose-50 text-rose-600 border border-rose-100 rounded-full font-bold tracking-wide flex items-center gap-1 w-fit"><span class="w-1.5 h-1.5 rounded-full bg-rose-500 hidden md:block"></span> Ditolak</span>` : `<span class="px-2.5 py-1 bg-amber-50 text-amber-600 border border-amber-100 rounded-full font-bold tracking-wide flex items-center gap-1 w-fit animate-pulse"><span class="w-1.5 h-1.5 rounded-full bg-amber-500 hidden md:block"></span> Menunggu</span>`;
         let actionBtn = '';
-        if(d.status === "Selesai") { actionBtn = `<button onclick="window.open('${d.link_pdf}', '_blank')" class="bg-rose-600 hover:bg-rose-700 text-white px-3 py-1.5 rounded-lg text-[10px] md:text-xs font-bold transition flex items-center gap-1 w-full md:w-auto justify-center"><i class="fas fa-file-pdf"></i> PDF</button>`; } 
+        
+        // SECURITY: Tombol Unduh kini mengarah ke fungsi download streaming, BUKAN link Google Drive yang diekspos
+        if(d.status === "Selesai") { actionBtn = `<button onclick="downloadPDFSecure('${d.id}')" class="bg-rose-600 hover:bg-rose-700 text-white px-3 py-1.5 rounded-lg text-[10px] md:text-xs font-bold transition flex items-center gap-1 w-full md:w-auto justify-center"><i class="fas fa-file-pdf"></i> PDF</button>`; } 
         else if(appState.role !== "mahasiswa" && d.status === "Menunggu Verifikasi") {
           actionBtn = `<div class="flex flex-row items-center gap-1 justify-start md:justify-center"><button onclick="openPreviewModal('${d.id}')" class="bg-slate-900 hover:bg-slate-800 text-white px-2 py-1.5 rounded text-[10px] font-bold shadow-sm"><i class="fas fa-eye md:mr-0.5"></i> <span class="hidden md:inline">Cek</span></button><button onclick="doApproveSurat('${d.id}')" class="bg-emerald-600 hover:bg-emerald-700 text-white px-2 py-1.5 rounded text-[10px] font-bold shadow-sm"><i class="fas fa-check md:mr-0.5"></i> <span class="hidden md:inline">Setujui</span></button><button onclick="openRejectModal('${d.id}')" class="bg-rose-100 hover:bg-rose-200 text-rose-600 px-2 py-1.5 rounded text-[10px] font-bold"><i class="fas fa-times md:mr-0.5"></i> <span class="hidden md:inline">Tolak</span></button></div>`;
         } else { actionBtn = `<span class="text-[9px] md:text-[10px] text-slate-400 italic font-semibold">Sedang Diproses</span>`; }
         const dateStr = d.tanggal.split(" ")[0] || d.tanggal;
-        markup += `<tr class="border-b border-slate-100 hover:bg-slate-50/50"><td class="p-3 md:p-4 text-slate-500 font-semibold whitespace-nowrap">${dateStr}</td><td class="p-3 md:p-4 font-mono text-[10px] md:text-xs font-bold">${d.no_surat}</td><td class="p-3 md:p-4"><div><p class="font-bold text-slate-800 text-xs md:text-sm">${d.nama}</p><p class="text-[9px] md:text-[10px] text-slate-400 font-mono">${d.nim}</p></div></td><td class="p-3 md:p-4 text-[10px] md:text-xs text-slate-500 max-w-[100px] md:max-w-[150px] truncate" title="${d.tujuan}">${d.tujuan}</td><td class="p-3 md:p-4">${badge}</td><td class="p-3 md:p-4">${actionBtn}</td></tr>`;
+        
+        // SECURITY: Render data dari backend di-escape menggunakan fungsi escapeHTML untuk mencegah XSS
+        markup += `<tr class="border-b border-slate-100 hover:bg-slate-50/50"><td class="p-3 md:p-4 text-slate-500 font-semibold whitespace-nowrap">${escapeHTML(dateStr)}</td><td class="p-3 md:p-4 font-mono text-[10px] md:text-xs font-bold">${escapeHTML(d.no_surat)}</td><td class="p-3 md:p-4"><div><p class="font-bold text-slate-800 text-xs md:text-sm">${escapeHTML(d.nama)}</p><p class="text-[9px] md:text-[10px] text-slate-400 font-mono">${escapeHTML(d.nim)}</p></div></td><td class="p-3 md:p-4 text-[10px] md:text-xs text-slate-500 max-w-[100px] md:max-w-[150px] truncate" title="${escapeHTML(d.tujuan)}">${escapeHTML(d.tujuan)}</td><td class="p-3 md:p-4">${badge}</td><td class="p-3 md:p-4">${actionBtn}</td></tr>`;
       });
       container.innerHTML = markup;
+    }
+
+    // SECURITY: FUNGSI STREAMING FILE SECURE DARI BACKEND API
+    async function downloadPDFSecure(idSurat) {
+        showToast("Mengunduh", "Meminta dokumen aman dari server...", "fa-spinner fa-spin");
+        try {
+            const params = { action: 'downloadDokumenSecure', idSurat: idSurat };
+            
+            // Sertakan kredensial jika admin untuk otorisasi
+            if(appState.role === 'admin' || appState.role === 'pimpinan') {
+                params.adminUser = appState.user.username;
+                params.adminPass = appState.user.password;
+            }
+            
+            const url = new URL(GAS_API_URL);
+            for(let key in params) url.searchParams.append(key, params[key]);
+            
+            const res = await fetch(url).then(r => r.json());
+            
+            if(res.status !== 'success') throw new Error(res.message);
+            
+            // Dekode Base64 yang diterima dan jadikan file blob untuk di-download ke device
+            const byteCharacters = atob(res.base64);
+            const byteNumbers = new Array(byteCharacters.length);
+            for (let i = 0; i < byteCharacters.length; i++) byteNumbers[i] = byteCharacters.charCodeAt(i);
+            const byteArray = new Uint8Array(byteNumbers);
+            const fileBlob = new Blob([byteArray], {type: res.mimeType});
+            
+            const fileUrl = URL.createObjectURL(fileBlob);
+            const a = document.createElement('a');
+            a.href = fileUrl; a.download = res.fileName; document.body.appendChild(a);
+            a.click(); URL.revokeObjectURL(fileUrl);
+            
+            showToast("Sukses", "Dokumen berhasil diunduh.", "fa-check");
+        } catch(e) { showToast("Gagal", e.message, "fa-times"); }
     }
 
     function updateNavBadges() {
@@ -457,7 +524,13 @@
     async function doApproveSurat(id) {
       showToast("Memproses PDF", "Membuat dan menyetujui surat...", "fa-spinner fa-spin");
       try {
-        const res = await apiPost('setujuiPengajuan', {idSurat: id, adminName: appState.user.name});
+        // SECURITY: Sertakan Kredensial untuk Otorisasi Backend API
+        const payload = {
+          idSurat: id, 
+          adminUser: appState.user.username,
+          adminPass: appState.user.password
+        };
+        const res = await apiPost('setujuiPengajuan', payload);
         if(res.status === 'success') { showToast("Selesai", "PDF dibuat.", "fa-check"); renderMainDataTable(); }
         else showToast("Gagal", res.message, "fa-times");
       } catch(e) { showToast("Offline", "Koneksi terputus.", "fa-wifi"); }
@@ -465,12 +538,20 @@
 
     function openRejectModal(id) { appState.rejectTargetId = id; document.getElementById('reject-modal').classList.remove('hide'); }
     function closeRejectModal() { appState.rejectTargetId = null; document.getElementById('reject-modal').classList.add('hide'); }
+    
     async function submitRejectForm() {
       const alasan = document.getElementById('reject-reason').value.trim();
       if(!alasan) return alert("Isi alasan!");
       showToast("Menolak", "Memproses...", "fa-spinner fa-spin");
       try {
-        const res = await apiPost('tolakPengajuan', {idSurat: appState.rejectTargetId, alasan: alasan, adminName: appState.user.name});
+        // SECURITY: Sertakan Kredensial untuk Otorisasi Backend API
+        const payload = {
+          idSurat: appState.rejectTargetId, 
+          alasan: alasan, 
+          adminUser: appState.user.username,
+          adminPass: appState.user.password
+        };
+        const res = await apiPost('tolakPengajuan', payload);
         if(res.status === 'success') { showToast("Ditolak", "Surat ditolak.", "fa-check"); closeRejectModal(); renderMainDataTable(); }
       } catch(e) { showToast("Error", "Gagal menghubungi server", "fa-wifi"); }
     }
@@ -478,7 +559,9 @@
     function openPreviewModal(id) {
       const doc = appState.db.find(d => d.id === id);
       if(!doc) return;
-      document.getElementById('kertas-pdf-preview').innerHTML = `<h3 class="font-bold text-center">PRATINJAU DATA MENTAH</h3><br><p><strong>Nama:</strong> ${doc.nama}<br><strong>NIM:</strong> ${doc.nim}<br><strong>Prodi:</strong> ${doc.prodi}<br><strong>Semester:</strong> ${doc.semester}<br><strong>Tahun Akademik:</strong> ${doc.tahun_akademik}<br><strong>Nama Ortu:</strong> ${doc.ortu_nama}<br><strong>Pangkat/Golongan/Ruang:</strong> ${doc.ortu_pangkat}<br><strong>Instansi Ortu:</strong> ${doc.ortu_instansi}<br><strong>Keperluan:</strong> ${doc.tujuan}</p>`;
+      
+      // SECURITY: Pratinjau diamankan menggunakan escapeHTML
+      document.getElementById('kertas-pdf-preview').innerHTML = `<h3 class="font-bold text-center">PRATINJAU DATA MENTAH</h3><br><p><strong>Nama:</strong> ${escapeHTML(doc.nama)}<br><strong>NIM:</strong> ${escapeHTML(doc.nim)}<br><strong>Prodi:</strong> ${escapeHTML(doc.prodi)}<br><strong>Semester:</strong> ${escapeHTML(doc.semester)}<br><strong>Tahun Akademik:</strong> ${escapeHTML(doc.tahun_akademik)}<br><strong>Nama Ortu:</strong> ${escapeHTML(doc.ortu_nama)}<br><strong>Pangkat/Golongan/Ruang:</strong> ${escapeHTML(doc.ortu_pangkat)}<br><strong>Instansi Ortu:</strong> ${escapeHTML(doc.ortu_instansi)}<br><strong>Keperluan:</strong> ${escapeHTML(doc.tujuan)}</p>`;
       document.getElementById('pdf-modal').classList.remove('hide');
     }
     function closeModal() { document.getElementById('pdf-modal').classList.add('hide'); }
