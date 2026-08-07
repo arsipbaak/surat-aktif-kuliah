@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.tailwindcss.com https://cdnjs.cloudflare.com https://www.google.com/recaptcha/ https://www.gstatic.com/recaptcha/; style-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com https://cdnjs.cloudflare.com; connect-src 'self' https://script.google.com https://*.googleusercontent.com https://www.google.com/recaptcha/; img-src 'self' data: blob: https://quickchart.io ./logo-poltera.png; frame-src 'self' https://www.google.com/recaptcha/;">
-  <title>E-Surat BAAK POLTERA</title>
+  <title>Layanan E-Surat BAAK POLTERA</title>
   
   <script src="https://cdn.tailwindcss.com"></script>
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
@@ -297,7 +297,11 @@
       };
       
       showToast("Menyimpan", "Mengirim data pengajuan...", "fa-spinner fa-spin");
-      try { const res = await apiPost('simpanPengajuan', payload); if(res.status === 'success') { showToast("Sukses", "Data tersimpan.", "fa-check"); changeView('riwayat'); } else showToast("Gagal", res.message, "fa-times"); } catch(e) { showToast("Offline", "Koneksi terputus.", "fa-wifi"); }
+      try { 
+        const res = await apiPost('simpanPengajuan', payload); 
+        if(res.status === 'success') { showToast("Sukses", "Data tersimpan.", "fa-check"); changeView('riwayat'); } 
+        else { showToast("Gagal", res.message, "fa-times"); } 
+      } catch(e) { showToast("Offline", "Koneksi terputus.", "fa-wifi"); }
     }
 
     async function renderMainDataTable() {
@@ -332,14 +336,41 @@
     async function downloadPDFSecure(idSurat) { showToast("Mengunduh", "Meminta dokumen aman...", "fa-spinner fa-spin"); try { const params = { action: 'downloadDokumenSecure', idSurat: idSurat }; if(appState.role === 'admin' || appState.role === 'pimpinan') { params.adminUser = appState.user.username; params.adminPass = appState.user.password; } const url = new URL(GAS_API_URL); for(let key in params) url.searchParams.append(key, params[key]); const res = await fetch(url).then(r => r.json()); if(res.status !== 'success') throw new Error(res.message); const byteCharacters = atob(res.base64); const byteNumbers = new Array(byteCharacters.length); for (let i = 0; i < byteCharacters.length; i++) byteNumbers[i] = byteCharacters.charCodeAt(i); const fileUrl = URL.createObjectURL(new Blob([new Uint8Array(byteNumbers)], {type: res.mimeType})); const a = document.createElement('a'); a.href = fileUrl; a.download = res.fileName; document.body.appendChild(a); a.click(); URL.revokeObjectURL(fileUrl); showToast("Sukses", "Diunduh.", "fa-check"); } catch(e) { showToast("Gagal", e.message, "fa-times"); } }
     function updateNavBadges() { const pending = appState.db.filter(d => d.status === "Menunggu Verifikasi").length; if(document.getElementById('badge-nav-pending')) document.getElementById('badge-nav-pending').innerText = pending; }
     
-    async function doApproveSurat(id) { showToast("Memproses", "Menerbitkan surat...", "fa-spinner fa-spin"); try { const res = await apiPost('setujuiPengajuan', { idSurat: id, adminUser: appState.user.username, adminPass: appState.user.password }); if(res.status === 'success') { showToast("Selesai", "Berhasil disetujui.", "fa-check"); renderMainDataTable(); } } catch(e) { showToast("Error", "Gagal.", "fa-wifi"); } }
+    // ================= PENANGANAN ERROR VISUAL SAAT APPROVE =================
+    async function doApproveSurat(id) { 
+      showToast("Memproses", "Menerbitkan surat...", "fa-spinner fa-spin"); 
+      try { 
+        const res = await apiPost('setujuiPengajuan', { idSurat: id, adminUser: appState.user.username, adminPass: appState.user.password }); 
+        if(res.status === 'success') { 
+            showToast("Selesai", "Berhasil disetujui.", "fa-check"); 
+            renderMainDataTable(); 
+        } else {
+            showToast("Gagal", res.message || "Terjadi kendala server.", "fa-times"); // Menampilkan pesan error
+        }
+      } catch(e) { showToast("Error", "Gagal menghubungi server.", "fa-wifi"); } 
+    }
+    
     function openRejectModal(id) { appState.rejectTargetId = id; document.getElementById('reject-modal').classList.remove('hide'); }
     function closeRejectModal() { appState.rejectTargetId = null; document.getElementById('reject-modal').classList.add('hide'); }
-    async function submitRejectForm() { const alasan = document.getElementById('reject-reason').value.trim(); if(!alasan) return alert("Isi alasan!"); showToast("Menolak", "Memproses...", "fa-spinner fa-spin"); try { const res = await apiPost('tolakPengajuan', { idSurat: appState.rejectTargetId, alasan: alasan, adminUser: appState.user.username, adminPass: appState.user.password }); if(res.status === 'success') { showToast("Ditolak", "Surat ditolak.", "fa-check"); closeRejectModal(); renderMainDataTable(); } } catch(e) { showToast("Error", "Gagal.", "fa-wifi"); } }
+    
+    async function submitRejectForm() { 
+      const alasan = document.getElementById('reject-reason').value.trim(); if(!alasan) return alert("Isi alasan!"); 
+      showToast("Menolak", "Memproses...", "fa-spinner fa-spin"); 
+      try { 
+        const res = await apiPost('tolakPengajuan', { idSurat: appState.rejectTargetId, alasan: alasan, adminUser: appState.user.username, adminPass: appState.user.password }); 
+        if(res.status === 'success') { 
+            showToast("Ditolak", "Surat ditolak.", "fa-check"); 
+            closeRejectModal(); 
+            renderMainDataTable(); 
+        } else {
+            showToast("Gagal", res.message, "fa-times");
+        }
+      } catch(e) { showToast("Error", "Gagal.", "fa-wifi"); } 
+    }
     
     function fetchDatabaseMetrics() { if(document.getElementById('stat-total')) document.getElementById('stat-total').innerText = appState.db.length; if(document.getElementById('stat-pending')) document.getElementById('stat-pending').innerText = appState.db.filter(d => d.status === "Menunggu Verifikasi").length; if(document.getElementById('stat-done')) document.getElementById('stat-done').innerText = appState.db.filter(d => d.status === "Selesai").length; if(document.getElementById('stat-reject')) document.getElementById('stat-reject').innerText = appState.db.filter(d => d.status === "Ditolak").length;}
     function handleFilterTable(input) { const query = input.value.toLowerCase(); document.querySelectorAll('#main-table-data tbody tr').forEach(row => { row.style.display = row.innerText.toLowerCase().includes(query) ? '' : 'none'; }); }
-    function showToast(title, desc, iconClass) { document.getElementById('toast-title').innerText = title; document.getElementById('toast-desc').innerText = desc; document.getElementById('toast-icon-box').innerHTML = `<i class="fas ${iconClass}"></i>`; document.getElementById('app-toast').classList.remove('hide'); setTimeout(() => document.getElementById('app-toast').classList.add('hide'), 4000); }
+    function showToast(title, desc, iconClass) { document.getElementById('toast-title').innerText = title; document.getElementById('toast-desc').innerText = desc; document.getElementById('toast-icon-box').innerHTML = `<i class="fas ${iconClass}"></i>`; document.getElementById('app-toast').classList.remove('hide'); setTimeout(() => document.getElementById('app-toast').classList.add('hide'), 5000); }
   </script>
 </body>
 </html>
