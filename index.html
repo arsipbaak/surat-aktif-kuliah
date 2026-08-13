@@ -85,9 +85,18 @@
       
       <!-- DESKRIPSI LAYANAN SURAT -->
       <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6">
-        <div class="p-5 bg-white rounded-2xl border shadow-sm border-l-4 border-l-blue-500 hover:shadow-md transition"><h5 class="font-extrabold text-slate-800 text-sm mb-2"><i class="fas fa-file-alt text-blue-500 mr-1.5"></i> Surat Keterangan Aktif</h5><p class="text-[11px] text-slate-500 leading-relaxed">Surat Keterangan Aktif digunakan untuk kebutuhan tunjangan orang tua ASN/Swasta seperti (Tunjangan TASPEN, Pengurusan BPJS).</p></div>
-        <div class="p-5 bg-white rounded-2xl border shadow-sm border-l-4 border-l-emerald-500 hover:shadow-md transition"><h5 class="font-extrabold text-slate-800 text-sm mb-2"><i class="fas fa-file-signature text-emerald-500 mr-1.5"></i> Surat Keterangan</h5><p class="text-[11px] text-slate-500 leading-relaxed">Surat Keterangan digunakan untuk kebutuhan Surat keterangan Aktif, Surat Kehilangan, dan Administrasi lainnya.</p></div>
-        <div class="p-5 bg-white rounded-2xl border shadow-sm border-l-4 border-l-amber-500 hover:shadow-md transition"><h5 class="font-extrabold text-slate-800 text-sm mb-2"><i class="fas fa-briefcase text-amber-500 mr-1.5"></i> Surat Pengantar OJT</h5><p class="text-[11px] text-slate-500 leading-relaxed">Surat Pengantar OJT digunakan untuk kebutuhan persyaratan OJT untuk Industri.</p></div>
+        <div class="p-5 bg-white rounded-2xl border shadow-sm border-l-4 border-l-blue-500 hover:shadow-md transition">
+          <h5 class="font-extrabold text-slate-800 text-sm mb-2"><i class="fas fa-file-alt text-blue-500 mr-1.5"></i> Surat Keterangan Aktif</h5>
+          <p class="text-[11px] text-slate-500 leading-relaxed">Surat Keterangan Aktif digunakan untuk kebutuhan tunjangan orang tua ASN/Swasta seperti (Tunjangan TASPEN, Pengurusan BPJS).</p>
+        </div>
+        <div class="p-5 bg-white rounded-2xl border shadow-sm border-l-4 border-l-emerald-500 hover:shadow-md transition">
+          <h5 class="font-extrabold text-slate-800 text-sm mb-2"><i class="fas fa-file-signature text-emerald-500 mr-1.5"></i> Surat Keterangan</h5>
+          <p class="text-[11px] text-slate-500 leading-relaxed">Surat Keterangan digunakan untuk kebutuhan Surat keterangan Aktif, Surat Kehilangan, dan Administrasi lainnya.</p>
+        </div>
+        <div class="p-5 bg-white rounded-2xl border shadow-sm border-l-4 border-l-amber-500 hover:shadow-md transition">
+          <h5 class="font-extrabold text-slate-800 text-sm mb-2"><i class="fas fa-briefcase text-amber-500 mr-1.5"></i> Surat Pengantar OJT</h5>
+          <p class="text-[11px] text-slate-500 leading-relaxed">Surat Pengantar OJT digunakan untuk kebutuhan persyaratan OJT untuk Industri.</p>
+        </div>
       </div>
     </div>
   </template>
@@ -437,7 +446,9 @@
         container.innerHTML = markup; updatePaginationVisibility('main-table-data', 'limit-riwayat'); 
     }
     
+    // ==============================================================================
     // FUNGSI PREVIEW DETAIL YANG BARU (PRESISI BERDASARKAN JENIS SURAT)
+    // ==============================================================================
     function openPreviewModal(id) { 
       const data = appState.db.find(d => d.id === id); if(!data) return; 
       
@@ -447,11 +458,12 @@
         <tr class="border-b"><th class="p-3 text-slate-500 bg-slate-50 border-r">Status</th><td class="p-3 font-bold text-poltera-navy">${escapeHTML(data.status)}</td></tr>`;
         
       html += `
-        <tr class="border-b"><th class="p-3 text-slate-500 bg-slate-50 border-r">Nama / NRP</th><td class="p-3"><p class="font-bold">${escapeHTML(data.nama)}</p><p class="text-[10px] text-slate-500">${escapeHTML(data.nim)}</p></td></tr>
+        <tr class="border-b"><th class="p-3 text-slate-500 bg-slate-50 border-r">Nama Mahasiswa</th><td class="p-3 font-bold">${escapeHTML(data.nama)}</td></tr>
+        <tr class="border-b"><th class="p-3 text-slate-500 bg-slate-50 border-r">NRP</th><td class="p-3 font-mono">${escapeHTML(data.nim)}</td></tr>
         <tr class="border-b"><th class="p-3 text-slate-500 bg-slate-50 border-r">Prodi</th><td class="p-3">${escapeHTML(data.prodi)}</td></tr>
-        <tr class="border-b"><th class="p-3 text-slate-500 bg-slate-50 border-r">Semester / Thn Akademik</th><td class="p-3">Smt ${escapeHTML(data.semester)} / ${escapeHTML(data.tahun_akademik)}</td></tr>
-        <tr class="border-b"><th class="p-3 text-slate-500 bg-slate-50 border-r">Lama Studi</th><td class="p-3">${escapeHTML(data.lama_studi || "-")}</td></tr>
-        <tr class="border-b"><th class="p-3 text-slate-500 bg-slate-50 border-r">No WhatsApp</th><td class="p-3">${escapeHTML(data.no_hp || "-")}</td></tr>`; 
+        <tr class="border-b"><th class="p-3 text-slate-500 bg-slate-50 border-r">Semester</th><td class="p-3">${escapeHTML(data.semester)}</td></tr>
+        <tr class="border-b"><th class="p-3 text-slate-500 bg-slate-50 border-r">Tahun Akademik</th><td class="p-3">${escapeHTML(data.tahun_akademik)}</td></tr>
+        <tr class="border-b"><th class="p-3 text-slate-500 bg-slate-50 border-r">Lama Studi</th><td class="p-3">${escapeHTML(data.lama_studi || "-")}</td></tr>`; 
         
       if(data.kode_surat === '1') { 
           html += `
@@ -459,36 +471,44 @@
           <tr class="border-b"><th class="p-3 text-slate-500 bg-slate-50 border-r">NIP Wali</th><td class="p-3">${escapeHTML(data.ortu_nip)}</td></tr>
           <tr class="border-b"><th class="p-3 text-slate-500 bg-slate-50 border-r">Pangkat / Golongan</th><td class="p-3">${escapeHTML(data.ortu_pangkat)}</td></tr>
           <tr class="border-b"><th class="p-3 text-slate-500 bg-slate-50 border-r">Instansi / Unit Kerja</th><td class="p-3">${escapeHTML(data.ortu_instansi)}</td></tr>
+          <tr class="border-b"><th class="p-3 text-slate-500 bg-slate-50 border-r">No WA</th><td class="p-3">${escapeHTML(data.no_hp || "-")}</td></tr>
           <tr class="border-b"><th class="p-3 text-slate-500 bg-slate-50 border-r">Tujuan / Keperluan</th><td class="p-3 font-semibold">${escapeHTML(data.tujuan)}</td></tr>`; 
       } 
       else if(data.kode_surat === '2') { 
           html += `
-          <tr class="border-b"><th class="p-3 text-slate-500 bg-slate-50 border-r">Tempat, Tgl Lahir</th><td class="p-3">${escapeHTML(data.umum_ttl)}</td></tr>
+          <tr class="border-b"><th class="p-3 text-slate-500 bg-slate-50 border-r">Tempat / Tgl Lahir</th><td class="p-3">${escapeHTML(data.umum_ttl)}</td></tr>
           <tr class="border-b"><th class="p-3 text-slate-500 bg-slate-50 border-r">Alamat Lengkap</th><td class="p-3">${escapeHTML(data.umum_alamat)}</td></tr>
           <tr class="border-b"><th class="p-3 text-slate-500 bg-slate-50 border-r">IPK Terakhir</th><td class="p-3 font-bold">${escapeHTML(data.umum_ipk)}</td></tr>
+          <tr class="border-b"><th class="p-3 text-slate-500 bg-slate-50 border-r">No WA</th><td class="p-3">${escapeHTML(data.no_hp || "-")}</td></tr>
           <tr class="border-b"><th class="p-3 text-slate-500 bg-slate-50 border-r">Tujuan / Keperluan</th><td class="p-3 font-semibold">${escapeHTML(data.tujuan)}</td></tr>`; 
       } 
       else if(data.kode_surat === '3') { 
           html += `
-          <tr class="border-b"><th class="p-3 text-slate-500 bg-slate-50 border-r">Nama Perusahaan (PT)</th><td class="p-3 font-bold">${escapeHTML(data.tujuan_pt)}</td></tr>
+          <tr class="border-b"><th class="p-3 text-slate-500 bg-slate-50 border-r">Nama Perusahaan PT</th><td class="p-3 font-bold">${escapeHTML(data.tujuan_pt)}</td></tr>
           <tr class="border-b"><th class="p-3 text-slate-500 bg-slate-50 border-r">Alamat PT</th><td class="p-3">${escapeHTML(data.alamat_pt)}</td></tr>
           <tr class="border-b"><th class="p-3 text-slate-500 bg-slate-50 border-r">Lama Waktu OJT</th><td class="p-3">${escapeHTML(data.lama_ojt)}</td></tr>
           <tr class="border-b"><th class="p-3 text-slate-500 bg-slate-50 border-r">Rentang Pelaksanaan</th><td class="p-3">${escapeHTML(data.rentang_ojt)}</td></tr>`; 
+          
           try { 
               let anggota = JSON.parse(data.anggota_ojt); 
               if(anggota.length > 0) { 
-                  html += `<tr class="border-b"><th class="p-3 text-slate-500 bg-slate-50 border-r align-top">Anggota Kelompok OJT (${anggota.length})</th><td class="p-3"><ul class="list-decimal pl-4 space-y-1">`; 
+                  html += `<tr class="border-b"><th class="p-3 text-slate-500 bg-slate-50 border-r align-top">Anggota Kelompok OJT</th><td class="p-3"><ul class="list-decimal pl-4 space-y-1">`; 
                   anggota.forEach(a => { html += `<li><span class="font-bold">${escapeHTML(a.nama)}</span> <span class="text-[10px] text-slate-500 font-mono">(${escapeHTML(a.nim)}) - ${escapeHTML(a.prodi)}</span></li>`; }); 
                   html += `</ul></td></tr>`; 
-              } 
+              } else {
+                  html += `<tr class="border-b"><th class="p-3 text-slate-500 bg-slate-50 border-r align-top">Anggota Kelompok OJT</th><td class="p-3">-</td></tr>`;
+              }
           } catch(e) {} 
+          
+          html += `<tr class="border-b"><th class="p-3 text-slate-500 bg-slate-50 border-r">No WA</th><td class="p-3">${escapeHTML(data.no_hp || "-")}</td></tr>`;
       } 
       
       html += `</tbody></table>`; 
       document.getElementById('preview-content').innerHTML = html; 
       document.getElementById('preview-modal').classList.remove('hide'); 
     }
-    
+    // ==============================================================================
+
     function closePreviewModal() { document.getElementById('preview-modal').classList.add('hide'); }
     async function downloadPDFSecure(idSurat) { showToast("Mengunduh", "Meminta dokumen aman...", "fa-spinner fa-spin"); try { const params = { action: 'downloadDokumenSecure', idSurat: idSurat }; if(appState.role === 'admin' || appState.role === 'pimpinan') { params.adminUser = appState.user.username; params.adminPass = appState.user.password; } const url = new URL(GAS_API_URL); for(let key in params) url.searchParams.append(key, params[key]); const res = await fetch(url).then(r => r.json()); if(res.status !== 'success') throw new Error(res.message); const byteCharacters = atob(res.base64); const byteNumbers = new Array(byteCharacters.length); for (let i = 0; i < byteCharacters.length; i++) byteNumbers[i] = byteCharacters.charCodeAt(i); const fileUrl = URL.createObjectURL(new Blob([new Uint8Array(byteNumbers)], {type: res.mimeType})); const a = document.createElement('a'); a.href = fileUrl; a.download = res.fileName; document.body.appendChild(a); a.click(); URL.revokeObjectURL(fileUrl); showToast("Sukses", "Diunduh.", "fa-check"); } catch(e) { showToast("Gagal", e.message, "fa-times"); } }
     function updateNavBadges() { const pending = appState.db.filter(d => d.status === "Menunggu Verifikasi").length; if(document.getElementById('badge-nav-pending')) document.getElementById('badge-nav-pending').innerText = pending; }
